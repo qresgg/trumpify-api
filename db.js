@@ -1,12 +1,13 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
+require('dotenv').config();
 
 
 const PORT = process.env.PORT || 4000;
 
 const app = express();
-const uri = 'mongodb+srv://vitalik:damn@spotik.ppxm4.mongodb.net/playlists';
+const uri = process.env.DATABASE_URL;
 
 mongoose.connect(uri, { useNewUrlParser: true, useUnifiedTopology: true })
   .then(() => console.log('Connected to MongoDB'))
