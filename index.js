@@ -14,7 +14,7 @@ const authRoutes = require('./routes/authRoutes');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 4000;
-const SECRETKEY = process.env.SECRETKEY;
+const { SECRETKEY_COOKIES, NODE_ENV } = process.env;
 const app = express();
 
 connectDB()
@@ -26,11 +26,11 @@ app.use(cors({
 }));
 
 app.use(session({
-  secret: SECRETKEY,
+  secret: SECRETKEY_COOKIES,
   resave: false,
   saveUninitialized: true,
   cookie: {
-    secure: false,
+    secure: NODE_ENV === 'production',
     httpOnly: true, 
     sameSite: 'strict',
   },
