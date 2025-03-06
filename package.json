@@ -1,9 +1,9 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "main": "db.js",
+  "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "nodemon"
   },
   "keywords": [],
   "author": "",
@@ -20,5 +20,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.11.0"
   },
-  "type": "commonjs"
+  "type": "commonjs",
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
 }

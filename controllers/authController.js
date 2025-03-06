@@ -111,6 +111,4 @@ const token = async (req, res) => {
   }
 }
 
-
-
 module.exports = { data, register, login, token}

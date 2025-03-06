@@ -8,6 +8,7 @@ const jwt = require('jsonwebtoken')
 const { connectDB } = require('./database/mongodb')
 
 const authRoutes = require('./routes/authRoutes');
+const userRoutes = require('./routes/userRoutes')
 
 // const TokenSchema = require('./models/Token')
 
@@ -39,6 +40,7 @@ app.use(session({
 app.use(express.json());
 
 app.use('/auth', authRoutes);
+app.use('/api', userRoutes);
 
 const start = (port) => {
   try {
