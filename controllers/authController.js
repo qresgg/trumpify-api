@@ -87,6 +87,17 @@ const login = async (req, res) => {
   }
 }
 
+const logout = async (req, res) => {
+  try{
+    return res
+    .clearCookie("refreshToken")
+    .status(200)
+    .json({ message: "Successfully logged out 😏 🍀" });
+  } catch (error) {
+    return res.status(500).json({ error: 'internal server error'})
+  }
+}
+
 const token = async (req, res) => {
   try{
     const refresh_token = req.cookies.refreshToken;
@@ -111,4 +122,20 @@ const token = async (req, res) => {
   }
 }
 
-module.exports = { data, register, login, token}
+const verifyToken = async (req, res) => {
+  try {
+      const token = req.headers.authorization?.split(" ")[1];
+      if (!token) {
+          return res.status(401).json({ message: "Token missing" });
+      }
+
+      const decoded = jwt.verify(token, SECRETKEY_ACCESS);
+      return res.status(200).json({ valid: true, userId: decoded.id });
+  } catch (error) {
+      return res.status(401).json({ message: "Invalid token" });
+  }
+};
+
+
+
+module.exports = { data, register, login, logout, token, verifyToken}
