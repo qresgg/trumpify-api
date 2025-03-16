@@ -5,7 +5,6 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 
 
-
 const getUserData = async (req, res) => {
   try {
     console.log('Request received for user data:', req.user);
