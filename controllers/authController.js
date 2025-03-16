@@ -4,14 +4,14 @@ const mongoose = require('mongoose');
 
 const Album = require('../models/AlbumModel');
 const User = require('../models/UserModel');
-//const Token = require('./models/TokenModel')
+
 const { SECRETKEY_ACCESS, SECRETKEY_REFRESH, NODE_ENV} = process.env;
 
 const generateAccessToken = (user) => {
-  return jwt.sign({id: user._id, userName: user.user_name, userRole: user.role}, SECRETKEY_ACCESS, { expiresIn: '15m'})
+  return jwt.sign({id: user._id, userName: user.user_name}, SECRETKEY_ACCESS, { expiresIn: '15m'})
 }
 const generateRefreshToken = (user) => {
-  return jwt.sign({id: user._id, userName: user.user_name, userRole: user.role}, SECRETKEY_REFRESH, { expiresIn: '7d' })
+  return jwt.sign({id: user._id, userName: user.user_name}, SECRETKEY_REFRESH, { expiresIn: '7d' })
 }
 
 const data = async (req, res) => {
@@ -26,10 +26,19 @@ const data = async (req, res) => {
 const register = async (req, res) => {
   try {
     const { userName, email, password} = req.body;
+    if (!userName || !email || !password) {
+      return res.status(400).json({ message: 'All fields are required' });
+    }
 
-    const userExists = await User.findOne({ userName, email });
-    if (userExists) {
-      return res.status(400).json({ message: 'user already exists' });
+    const userNameExists = await User.findOne({ user_name: userName });
+    const emailExists = await User.findOne({ email: email });
+
+    if (userNameExists) {
+      return res.status(400).json({ message: 'username already exists' });
+    }
+
+    if (emailExists) {
+      return res.status(400).json({ message: 'email already exists' });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -45,8 +54,8 @@ const register = async (req, res) => {
     res.status(201).json({ message: 'user registered successfully' });
 
   } catch (error) {
-    console.error('Error during registration:', error);
-    res.status(500).json({ message: 'an error occurred' });
+    console.error('Error during registration:', error.message, error.stack);
+  res.status(500).json({ message: 'an error occurred', error: error.message });
   }
 };
 
@@ -80,7 +89,7 @@ const login = async (req, res) => {
     req.session.userName = userName.user_name;
     
     res.json({access_token})
-    //await Token.create({ userId: user._id, userName: user.user_name, token });
+    
   } catch (error) {
     console.error('Error during login:', error);
     res.status(500).json({ message: 'an error occurred' });
@@ -122,20 +131,21 @@ const token = async (req, res) => {
   }
 }
 
-const verifyToken = async (req, res) => {
-  try {
-      const token = req.headers.authorization?.split(" ")[1];
-      if (!token) {
-          return res.status(401).json({ message: "Token missing" });
-      }
+const verifyToken = (req, res) => {
+  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
 
-      const decoded = jwt.verify(token, SECRETKEY_ACCESS);
-      return res.status(200).json({ valid: true, userId: decoded.id });
-  } catch (error) {
-      return res.status(401).json({ message: "Invalid token" });
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
   }
-};
 
+  jwt.verify(token, SECRETKEY_ACCESS, (err, decoded) => {
+    if (err) {
+      return res.status(401).json({ message: 'Invalid token' });
+    }
+
+    res.status(200).json({ message: 'Token is valid' });
+  });
+}
 
 
 module.exports = { data, register, login, logout, token, verifyToken}

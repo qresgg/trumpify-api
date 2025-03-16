@@ -1,26 +1,14 @@
 const mongoose = require('mongoose');
 
-const TrackSchema = new mongoose.Schema({
-    title: {type: String, required: true},
-    duration: { type: String, required: true},
-    featuring: [{ artist: String }]
-})
+const userSchema = new mongoose.Schema({
+    user_name: { type: String, required: true, unique: true },
+    email: { type: String, required: true, unique: true },
+    password_hash: { type: String, required: true },
+    refresh_token: { type: String },
+    liked_songs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Song" }],
+    playlists: [{ type: mongoose.Schema.Types.ObjectId, ref: "Playlist" }],
+    artist_profile: { type: mongoose.Schema.Types.ObjectId, ref: "Artist", default: null },
+    created_at: { type: Date, default: Date.now }
+}, { collection: "usersData"});    
 
-const LikedSongsSchema = new mongoose.Schema({
-    title: {type: String, required: true},
-    type: {type: String, required: true},
-    tracks: [TrackSchema]
-})
-
-const UserSchema = new mongoose.Schema({
-    id: {type: Number},
-    user_name: {type: String, required: true, unique: true},
-    email: {type: String, required: true, unique: true},
-    password_hash: {type: String, required: true},
-    role: {type: String, default: 'user'},
-    refresh_token: {type: String},
-    created_at: {type: Date},
-    liked_songs: [LikedSongsSchema]
-}, { collection: "usersData" });
-    
-module.exports = mongoose.model('User', UserSchema)
+module.exports = mongoose.model('User', userSchema)

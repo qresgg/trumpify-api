@@ -8,7 +8,9 @@ const jwt = require('jsonwebtoken')
 const { connectDB } = require('./database/mongodb')
 
 const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes')
+const userRoutes = require('./routes/userRoutes');
+const artistRoutes = require('./routes/artistRoutes');
+const settingsRouter = require('./routes/settingsRoutes');
 
 // const TokenSchema = require('./models/Token')
 
@@ -41,6 +43,8 @@ app.use(express.json());
 
 app.use('/auth', authRoutes);
 app.use('/api', userRoutes);
+app.use('/artist', artistRoutes);
+app.use('/settings', settingsRouter);
 
 const start = (port) => {
   try {

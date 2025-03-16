@@ -4,6 +4,7 @@ const { getUserData } = require('../controllers/userController');
 
 const userRouter = express.Router();
 
-userRouter.get('/user', authenticateToken, getUserData)
+userRouter.get('/getUser', authenticateToken, getUserData)
+// userRouter.put('/updateUser', authenticateToken, changeUserData)
 
 module.exports = userRouter;
