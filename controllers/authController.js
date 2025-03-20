@@ -16,7 +16,8 @@ const generateRefreshToken = (user) => {
 
 const data = async (req, res) => {
   try {
-        const result = await Album.find();
+        const result = await Album.find().populate('songs');
+        
         res.send(result);
       } catch (err) {
         console.error(err);

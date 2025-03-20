@@ -2,6 +2,9 @@ const mongoose = require("mongoose")
 
 const artistSchema = new mongoose.Schema({
     user_id: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
+    artist_avatar: { type: String, default: "none"},
+    artist_listeners: { type: Number, default: 0},
+    artist_subscribers: { type: Number, default: 0},
     name: { type: String, required: true, unique: true },
     bio: { type: String },
     is_verified: { type: Boolean, default: false },

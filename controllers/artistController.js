@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Artist = require('../models/ArtistModel');
 const User = require('../models/UserModel');
 const Song = require('../models/SongModel');
+const Album = require('../models/AlbumModel')
 
 const createArtistProfile = async (req, res, next) => {
     try {
@@ -73,4 +74,37 @@ const createSong = async (req, res, next) => {
     }
 }
 
-module.exports = { createArtistProfile, createSong};
+const createAlbum = async (req, res, next) => {
+    try {
+        const { data } = req.body;
+        const { albumTitle, recordLabel, language, genre, type } = data;
+        const user = req.user;
+
+        const artist = await Artist.findById( user.artist_profile );
+
+        if (!artist) {
+            return res.status(404).json({ message: 'Artist not found' });
+        }
+
+        const newAlbum = new Album({
+            title: albumTitle,
+            artist: artist._id,
+            record_label: recordLabel,
+            artist_name: artist.name,
+            genre: genre,
+            type: type,
+            language: language
+        });
+
+        await newAlbum.save();
+        artist.albums.push(newAlbum);
+        await artist.save();
+
+        res.status(201).json({ message: 'Album created successfully', album: newAlbum });
+    } catch (error) {
+        console.error('Error creating song:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+module.exports = { createArtistProfile, createSong, createAlbum};
