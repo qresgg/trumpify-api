@@ -11,6 +11,7 @@ const authRoutes = require('./routes/authRoutes');
 const userRoutes = require('./routes/userRoutes');
 const artistRoutes = require('./routes/artistRoutes');
 const settingsRouter = require('./routes/settingsRoutes');
+const actionRouter = require('./routes/userActionsRoutes');
 
 // const TokenSchema = require('./models/Token')
 
@@ -45,6 +46,7 @@ app.use('/auth', authRoutes);
 app.use('/api', userRoutes);
 app.use('/artist', artistRoutes);
 app.use('/settings', settingsRouter);
+app.use('/actions', actionRouter);
 
 const start = (port) => {
   try {

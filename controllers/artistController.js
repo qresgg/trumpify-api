@@ -47,7 +47,7 @@ const createArtistProfile = async (req, res, next) => {
 
 const createSong = async (req, res, next) => {
     try {
-        const { title, genre, duration } = req.body;
+        const { title, genre, duration, type, explicit } = req.body;
         const user = req.user;
 
         const artist = await Artist.findById( user.artist_profile );
@@ -61,13 +61,16 @@ const createSong = async (req, res, next) => {
             artist: artist._id,
             duration: duration,
             genre: genre,
+            type: type,
+            is_explicit: explicit
         });
 
         newSong.save();
         artist.songs.push(newSong);
         await artist.save();
 
-        res.status(201).json({ message: 'Song created successfully', song: newSong });
+        req.song = newSong;
+        next();
     } catch (error) {
         console.error('Error creating song:', error);
         res.status(500).json({ error: 'Server error' });
@@ -76,8 +79,7 @@ const createSong = async (req, res, next) => {
 
 const createAlbum = async (req, res, next) => {
     try {
-        const { data } = req.body;
-        const { albumTitle, recordLabel, language, genre, type } = data;
+        const { albumTitle, recordLabel, language, genre, type } = req.body;
         const user = req.user;
 
         const artist = await Artist.findById( user.artist_profile );
@@ -101,10 +103,31 @@ const createAlbum = async (req, res, next) => {
         await artist.save();
 
         res.status(201).json({ message: 'Album created successfully', album: newAlbum });
+        req.album = newAlbum;
+        next();
     } catch (error) {
         console.error('Error creating song:', error);
         res.status(500).json({ error: 'Server error' });
     }
 }
 
-module.exports = { createArtistProfile, createSong, createAlbum};
+const uploadCover = async (req, res, next) => {
+    try {
+        if (!req.cloudinaryResult) {
+            return res.status(400).json({ error: "Cover upload failed" });
+        }
+
+        const { public_id: newPublicId, secure_url: newCoverUrl } = req.cloudinaryResult;
+
+        res.json({
+            message: "Cover uploaded successfully",
+            public_id: newPublicId,
+            coverUrl: newCoverUrl,
+        });
+    } catch (error) {
+        console.error("Error uploading cover:", error);
+        res.status(500).json({ error: "Failed to upload cover" });
+    }
+}
+
+module.exports = { createArtistProfile, createSong, createAlbum, uploadCover};

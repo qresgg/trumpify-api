@@ -29,20 +29,28 @@ const getUserData = async (req, res) => {
 
 const likeSong = async (req, res) => {
   try {
-    console.log(`Received Song: ${req.song}`);
+    const { song } = req.body;
+    console.log(song)
+
+    const songId = song._id;
     const userId = req.user.id;
-    const songId = req.song.id;
 
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).json({ message: 'User is not found' });
     }
-    const song = await Song.findById(songId);
-    if (!song) {
+    if (user.liked_songs.includes(songId)) {
+      return res.status(400).json({ message: 'Song is already liked' });
+    }
+    const songFind = await Song.findById(songId);
+    if (!songFind) {
       return res.status(404).json({ message: 'Song is not found' });
     }
+
+    user.liked_songs.push(songId)
+    songFind.likesCount += 1;
     
-    user.liked_songs.push(song)
+    await songFind.save();
     await user.save();
   } catch (error) {
     console.error('Server error:', error);
@@ -52,7 +60,6 @@ const likeSong = async (req, res) => {
 
 const unLikeSong = async (req, res) => {
   try {
-    console.log();
     const userId = req.user.id;
     const songId = req.song.id;
 
