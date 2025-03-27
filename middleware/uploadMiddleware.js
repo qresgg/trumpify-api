@@ -3,6 +3,7 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const multer = require('multer');
 const { Readable } = require("stream")
 const sharp = require('sharp');
+const mongoose = require('mongoose')
 
 const User = require('../models/UserModel');
 const Song = require('../models/SongModel')
@@ -73,7 +74,6 @@ const uploadToCloudinarySongCover = async (req, res, next) => {
             return res.status(400).json({ error: "No file uploaded" });
         }
         const publicId = req.song._id;
-        console.log(publicId);
 
         const allowedTypes = ['image/jpeg', 'image/png'];
         if (!allowedTypes.includes(req.file.mimetype)) {
@@ -118,7 +118,6 @@ const uploadToCloudinaryAlbumCover = async (req, res, next) => {
             return res.status(400).json({ error: "No file uploaded" });
         }
         const publicId = req.album._id;
-        console.log(publicId);
 
         const allowedTypes = ['image/jpeg', 'image/png'];
         if (!allowedTypes.includes(req.file.mimetype)) {
@@ -146,7 +145,18 @@ const uploadToCloudinaryAlbumCover = async (req, res, next) => {
         
         const album = await Album.findById(publicId)
         album.cover = result.secure_url;
-        album.save();
+        await album.save();
+
+        const songs = await Song.find({ album: new mongoose.Types.ObjectId(publicId) });
+        for (const song of songs) {
+            try {
+                song.song_cover = result.secure_url;
+                await song.save();
+            } catch (err) {
+                console.error(`Error updating song ${song._id}:`, err);
+            }
+        }
+        
 
         req.cloudinaryResult = result;
         next();

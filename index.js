@@ -12,6 +12,7 @@ const userRoutes = require('./routes/userRoutes');
 const artistRoutes = require('./routes/artistRoutes');
 const settingsRouter = require('./routes/settingsRoutes');
 const actionRouter = require('./routes/userActionsRoutes');
+const findRouter = require('./routes/findRoutes');
 
 // const TokenSchema = require('./models/Token')
 
@@ -47,6 +48,7 @@ app.use('/api', userRoutes);
 app.use('/artist', artistRoutes);
 app.use('/settings', settingsRouter);
 app.use('/actions', actionRouter);
+app.use('/find', findRouter);
 
 const start = (port) => {
   try {

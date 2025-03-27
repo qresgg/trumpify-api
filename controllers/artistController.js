@@ -4,7 +4,7 @@ const User = require('../models/UserModel');
 const Song = require('../models/SongModel');
 const Album = require('../models/AlbumModel')
 
-const createArtistProfile = async (req, res, next) => {
+const createArtist = async (req, res) => {
     try {
         const { artistName, bio, password, confirmPassword } = req.body;
         const userId = req.user._id;
@@ -15,7 +15,7 @@ const createArtistProfile = async (req, res, next) => {
 
         const user = await User.findById(userId);
         if (!user) {
-            return res.status(404).json({ message: `User not found ${userId}424` });
+            return res.status(404).json({ message: `User not found` });
         }
 
         const artistExists = await Artist.findOne({ name: artistName });
@@ -47,7 +47,7 @@ const createArtistProfile = async (req, res, next) => {
 
 const createSong = async (req, res, next) => {
     try {
-        const { title, genre, duration, type, explicit } = req.body;
+        const { title, genre, duration, type, explicit, artists } = req.body;
         const user = req.user;
 
         const artist = await Artist.findById( user.artist_profile );
@@ -62,7 +62,8 @@ const createSong = async (req, res, next) => {
             duration: duration,
             genre: genre,
             type: type,
-            is_explicit: explicit
+            is_explicit: explicit,
+            features: artists
         });
 
         newSong.save();
@@ -83,11 +84,11 @@ const createAlbum = async (req, res, next) => {
         const user = req.user;
 
         const artist = await Artist.findById( user.artist_profile );
-
         if (!artist) {
             return res.status(404).json({ message: 'Artist not found' });
         }
 
+        const songs = [];
         const newAlbum = new Album({
             title: albumTitle,
             artist: artist._id,
@@ -99,10 +100,34 @@ const createAlbum = async (req, res, next) => {
         });
 
         await newAlbum.save();
+
+        if (req.body.songs && Array.isArray(req.body.songs)) {
+            for (const songDataRaw of req.body.songs) {
+                const songData = JSON.parse(songDataRaw);
+                if (!songData.title || !songData.duration) {
+                    return res.status(400).json({ error: 'Song must have a title and duration' });
+                }
+
+                const newSong = new Song({
+                    title: songData.title,
+                    duration: songData.duration,
+                    artist: artist._id,
+                    album: newAlbum._id,
+                    genre: genre,
+                    type: 'album',
+                    is_explicit: songData.explicit,
+                    features: songData.artists
+                });
+                await newSong.save();
+                songs.push(newSong._id);
+            }
+        }
+        newAlbum.songs = songs;
+        await newAlbum.save();
+
         artist.albums.push(newAlbum);
         await artist.save();
 
-        res.status(201).json({ message: 'Album created successfully', album: newAlbum });
         req.album = newAlbum;
         next();
     } catch (error) {
@@ -130,4 +155,4 @@ const uploadCover = async (req, res, next) => {
     }
 }
 
-module.exports = { createArtistProfile, createSong, createAlbum, uploadCover};
+module.exports = { createArtist, createSong, createAlbum, uploadCover};

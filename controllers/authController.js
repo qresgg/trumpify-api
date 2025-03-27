@@ -26,18 +26,17 @@ const data = async (req, res) => {
 }
 const register = async (req, res) => {
   try {
-    const { userName, email, password} = req.body;
-    if (!userName || !email || !password) {
+    const { username, email, password} = req.body;
+    if (!username || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
 
-    const userNameExists = await User.findOne({ user_name: userName });
+    const userNameExists = await User.findOne({ user_name: username });
     const emailExists = await User.findOne({ email: email });
 
     if (userNameExists) {
       return res.status(400).json({ message: 'username already exists' });
     }
-
     if (emailExists) {
       return res.status(400).json({ message: 'email already exists' });
     }
@@ -45,7 +44,7 @@ const register = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
-      user_name: userName,
+      user_name: username,
       email: email,
       password_hash: hashedPassword,
       created_at: Date.now()
@@ -62,8 +61,8 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { userName, password } = req.body;
-    const user = await User.findOne({ user_name: userName });
+    const { email, password } = req.body;
+    const user = await User.findOne({ email: email});
 
     if (!user) {
       return res.status(400).json({ message: 'user not found' });
@@ -86,10 +85,10 @@ const login = async (req, res) => {
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
-    req.session.userId = userName._id;
-    req.session.userName = userName.user_name;
+    req.session.userId = user._id;
+    req.session.userName = user.user_name;
     
-    res.json({access_token})
+    res.json({ access_token })
     
   } catch (error) {
     console.error('Error during login:', error);
@@ -113,6 +112,10 @@ const token = async (req, res) => {
     const refresh_token = req.cookies.refreshToken;
   if (!refresh_token) {
     return res.status(401).send('no refresh token');
+  }
+  const decoded = jwt.decode(refresh_token);
+  if (!decoded || !decoded.exp || Date.now() >= decoded.exp * 1000) {
+    return res.status(403).send('Expired refresh token');
   }
   
   const user = await User.findOne({ refresh_token });

@@ -9,14 +9,19 @@ const decodeToken = (token) => {
 
 const authenticateToken = async (req, res, next) => {
   try {
-    const token = req.headers.authorization.split(' ')[1];
-    const decodedToken = decodeToken(token);
-    
-    if (!token) {
-        return res.status(401).json({ message: 'Access token is missing' });
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: 'Authorization header is missing' })
     }
-    const userId = decodedToken.id;
+    const tokenParts = authHeader.split(' ');
+    if (tokenParts[0] !== 'Bearer' || !tokenParts[1]) {
+      return res.status(400).json({ message: 'Authorization format is invalid' });
+    }
 
+    const token = tokenParts[1];
+    const decodedToken = decodeToken(token);
+
+    const userId = decodedToken.id;
     const user = await User.findOne({ _id: userId });
     if (!user) {
         return res.status(404).json({ message: 'User not found' });

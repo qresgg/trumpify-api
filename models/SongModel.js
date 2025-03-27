@@ -1,13 +1,15 @@
 const mongoose = require('mongoose');
 
 const featureSchema = new mongoose.Schema({
-    name: { type: mongoose.Schema.Types.ObjectId, ref: "Artist", required: true },
+    artist: { type: mongoose.Schema.Types.ObjectId, ref: "Artist", required: true },
+    name: { type: String },
     role: { type: String, required: true },
 });
 
 const songSchema = new mongoose.Schema({
     title: { type: String, required: true },
     artist: { type: mongoose.Schema.Types.ObjectId, ref: "Artist", required: true },
+    definition: { type: String, default: 'User', immutable: true },
     features: [featureSchema],
     song_cover: { type: String, default: 'none'},
     album: { type: mongoose.Schema.Types.ObjectId, ref: "Album" },
