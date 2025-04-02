@@ -7,12 +7,12 @@ const cookieParser = require('cookie-parser')
 const jwt = require('jsonwebtoken')
 const { connectDB } = require('./database/mongodb')
 
-const authRoutes = require('./routes/authRoutes');
-const userRoutes = require('./routes/userRoutes');
-const artistRoutes = require('./routes/artistRoutes');
-const settingsRouter = require('./routes/settingsRoutes');
-const actionRouter = require('./routes/userActionsRoutes');
-const findRouter = require('./routes/findRoutes');
+const authRoutes = require('./routes/auth/authRoutes');
+const apiRoutes = require('./routes/api/userRoutes');
+const artistRoutes = require('./routes/artist/artistRoutes');
+const settingsRoutes = require('./routes/user/settingsRoutes');
+const actionRoutes = require('./routes/user/userActionsRoutes');
+const findRoutes = require('./routes/find/findRoutes');
 
 // const TokenSchema = require('./models/Token')
 
@@ -44,11 +44,11 @@ app.use(session({
 app.use(express.json());
 
 app.use('/auth', authRoutes);
-app.use('/api', userRoutes);
+app.use('/api', apiRoutes);
 app.use('/artist', artistRoutes);
-app.use('/settings', settingsRouter);
-app.use('/actions', actionRouter);
-app.use('/find', findRouter);
+app.use('/settings', settingsRoutes);
+app.use('/actions', actionRoutes);
+app.use('/find', findRoutes);
 
 const start = (port) => {
   try {

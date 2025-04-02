@@ -1,7 +1,8 @@
-const User = require('../models/UserModel');
-const Artist = require('../models/ArtistModel');
-const Song = require('../models/SongModel')
-const Album = require('../models/AlbumModel')
+const mongoose = require('mongoose')
+const User = require('../../models/User/UserModel');
+const Artist = require('../../models/Artist/ArtistModel');
+const Song = require('../../models/Artist/SongModel')
+const Album = require('../../models/Artist/AlbumModel')
 
 const findArtistById = async (req, res) => {
   const { id } = req.params;
@@ -9,7 +10,7 @@ const findArtistById = async (req, res) => {
   try{
     const artist = await Artist.findById( id );
     if (!artist) {
-      res.status(404).json({ message: 'Artist is not found' });
+      return res.status(404).json({ message: 'Artist is not found' });
     }
 
     res.json({

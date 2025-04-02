@@ -1,29 +1,14 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+const { SECRETKEY_ACCESS, SECRETKEY_REFRESH, NODE_ENV } = process.env;
 
-const Album = require('../models/AlbumModel');
-const User = require('../models/UserModel');
+const Album = require('../../models/Artist/AlbumModel');
+const User = require('../../models/User/UserModel');
+const LikedCol = require('../../models/User/LikedCollectionModel')
 
-const { SECRETKEY_ACCESS, SECRETKEY_REFRESH, NODE_ENV} = process.env;
+const { generateAccessToken, generateRefreshToken } = require('../../middleware/token')
 
-const generateAccessToken = (user) => {
-  return jwt.sign({id: user._id, userName: user.user_name}, SECRETKEY_ACCESS, { expiresIn: '15m'})
-}
-const generateRefreshToken = (user) => {
-  return jwt.sign({id: user._id, userName: user.user_name}, SECRETKEY_REFRESH, { expiresIn: '7d' })
-}
-
-const data = async (req, res) => {
-  try {
-        const result = await Album.find().populate('songs');
-        
-        res.send(result);
-      } catch (err) {
-        console.error(err);
-        res.status(500).send('error');
-      }
-}
 const register = async (req, res) => {
   try {
     const { username, email, password} = req.body;
@@ -48,14 +33,21 @@ const register = async (req, res) => {
       email: email,
       password_hash: hashedPassword,
       created_at: Date.now()
-    });
-
+    });    
     await newUser.save();
-    res.status(201).json({ message: 'user registered successfully' });
 
+    const newLikedCollection = new LikedCol({
+      user_id: newUser._id,
+    })
+    await newLikedCollection.save(); 
+    
+    newUser.liked_collection = newLikedCollection._id;
+    await newUser.save();
+
+    res.status(201).json({ message: 'user registered successfully' });
   } catch (error) {
     console.error('Error during registration:', error.message, error.stack);
-  res.status(500).json({ message: 'an error occurred', error: error.message });
+    res.status(500).json({ message: 'an error occurred', error: error.message });
   }
 };
 
@@ -135,21 +127,58 @@ const token = async (req, res) => {
   }
 }
 
-const verifyToken = (req, res) => {
-  const token = req.headers.authorization && req.headers.authorization.split(' ')[1];
-
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  jwt.verify(token, SECRETKEY_ACCESS, (err, decoded) => {
-    if (err) {
-      return res.status(401).json({ message: 'Invalid token' });
+const verifyToken = async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader) {
+      return res.status(401).json({ message: 'Authorization header is missing' });
     }
 
-    res.status(200).json({ message: 'Token is valid' });
-  });
-}
+    const tokenParts = authHeader.split(' ');
+    if (tokenParts[0] !== 'Bearer' || !tokenParts[1]) {
+      return res.status(400).json({ message: 'Authorization format is invalid' });
+    }
+
+    const token = tokenParts[1];
+    let decodedToken;
+
+    try {
+      decodedToken = jwt.verify(token, SECRETKEY_ACCESS);
+    } catch (error) {
+      if (error.name === 'TokenExpiredError') {
+        const refreshToken = req.cookies.refreshToken; 
+        if (!refreshToken) {
+          return res.status(403).json({ message: 'Refresh token is missing' });
+        }
+        try {
+          const decodedRefreshToken = jwt.verify(refreshToken, SECRETKEY_REFRESH);
+
+          const user = await User.findById(decodedRefreshToken._id)
+          if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+          }
+          const new_access_token = generateAccessToken(user);
+          res.setHeader('Authorization', `Bearer ${new_access_token}`);
+          req.headers.authorization = `Bearer ${new_access_token}`;
+          return next();
+        } catch (refreshError) {
+          return res.status(403).json({ message: 'Invalid refresh token' });
+        }
+      }
+      return res.status(401).json({ message: 'Invalid or expired access token' });
+    }
+
+    const userId = decodedToken.id;
+    const user = await User.findOne({ _id: userId });
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.status(200).json({ message: 'verified'})
+  } catch (error) {
+    console.error('Error authenticating token:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+};
 
 
-module.exports = { data, register, login, logout, token, verifyToken}
+module.exports = { register, login, logout, token, verifyToken}

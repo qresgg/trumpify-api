@@ -1,8 +1,8 @@
 const express = require('express')
-const { createArtist, createSong, createAlbum, uploadCover } = require("../controllers/artistController")
-const { authenticateToken } = require('../middleware/authMiddleware');
-const { upload, uploadToCloudinarySongCover, uploadToCloudinaryAlbumCover } = require('../middleware/uploadMiddleware');
-const { findArtistById } = require('../controllers/searchController')
+const { createArtist, createSong, createAlbum, uploadCover } = require("../../controllers/artist/artistController")
+const { authenticateToken } = require('../../middleware/authMiddleware');
+const { upload, uploadToCloudinarySongCover, uploadToCloudinaryAlbumCover } = require('../../middleware/uploadMiddleware');
+const { findArtistById } = require('../../controllers/search/searchController')
 
 const artistRouter = express.Router();
 

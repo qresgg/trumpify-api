@@ -1,13 +1,13 @@
 const mongoose = require('mongoose');
-const Artist = require('../models/ArtistModel');
-const User = require('../models/UserModel');
-const Song = require('../models/SongModel');
-const Album = require('../models/AlbumModel')
+const Artist = require('../../models/Artist/ArtistModel');
+const User = require('../../models/User/UserModel');
+const Song = require('../../models/Artist/SongModel');
+const Album = require('../../models/Artist/AlbumModel')
 
 const createArtist = async (req, res) => {
     try {
         const { artistName, bio, password, confirmPassword } = req.body;
-        const userId = req.user._id;
+        const userId = req.user.id;
         
         if (password !== confirmPassword) {
             return res.status(400).json({ message: 'Passwords do not match' });
@@ -48,12 +48,45 @@ const createArtist = async (req, res) => {
 const createSong = async (req, res, next) => {
     try {
         const { title, genre, duration, type, explicit, artists } = req.body;
-        const user = req.user;
+        const userId = req.user.id;
+
+        const user = await User.findById( userId )
+        if (!user) {
+            return res.status(404).json({ message: 'User not found'})
+        }
 
         const artist = await Artist.findById( user.artist_profile );
-
         if (!artist) {
             return res.status(404).json({ message: 'Artist not found' });
+        }
+
+        let features = [];
+        if (typeof artists === 'string') {
+            try {
+                const parsedArtists = JSON.parse(artists);
+                console.log(parsedArtists)
+
+                if (Array.isArray(parsedArtists)) {
+                    features = parsedArtists.map(artist => ({
+                        // artist: new Object('000000000000000000000000'),
+                        name: artist.name,
+                        roles: Array.isArray(artist.roles) 
+                            ? artist.roles.flatMap(role => ({ role }))
+                            : []
+                    }));
+                    console.log(features)
+                }
+            } catch (err) {
+                return res.status(400).json({ message: 'Invalid artists format' });
+            }
+        } else if (Array.isArray(artists)) {
+            features = artists.map(artist => ({
+                // artist: new Object('000000000000000000000000'), 
+                name: artist.name,
+                roles: Array.isArray(artist.roles) 
+                    ? artist.roles.flatMap(role => ({ role })) 
+                    : []
+            }));
         }
 
         const newSong = new Song({
@@ -63,7 +96,7 @@ const createSong = async (req, res, next) => {
             genre: genre,
             type: type,
             is_explicit: explicit,
-            features: artists
+            features
         });
 
         newSong.save();
@@ -81,14 +114,19 @@ const createSong = async (req, res, next) => {
 const createAlbum = async (req, res, next) => {
     try {
         const { albumTitle, recordLabel, language, genre, type } = req.body;
-        const user = req.user;
+        const userId = req.user.id;
 
+        const user = await User.findById( userId);
+        if (!user) {
+            return res.status(404).json({ message: 'User not found' });
+        }
         const artist = await Artist.findById( user.artist_profile );
         if (!artist) {
             return res.status(404).json({ message: 'Artist not found' });
         }
 
         const songs = [];
+
         const newAlbum = new Album({
             title: albumTitle,
             artist: artist._id,
@@ -99,13 +137,28 @@ const createAlbum = async (req, res, next) => {
             language: language
         });
 
-        await newAlbum.save();
+        // await newAlbum.save();
 
         if (req.body.songs && Array.isArray(req.body.songs)) {
             for (const songDataRaw of req.body.songs) {
                 const songData = JSON.parse(songDataRaw);
                 if (!songData.title || !songData.duration) {
                     return res.status(400).json({ error: 'Song must have a title and duration' });
+                }
+                console.log(songData)
+                
+                const features = [];
+                if (songData.artists && Array.isArray(songData.artists)) {
+                    for (const artist of songData.artists) {
+                        features.push({
+                            name: artist.name,
+                            // _id: artist._id,
+                            roles: Array.isArray(artist.roles)
+                            ? artist.roles.map(role => ({ role }))
+                            : []
+            
+                        });
+                    }
                 }
 
                 const newSong = new Song({
@@ -116,8 +169,9 @@ const createAlbum = async (req, res, next) => {
                     genre: genre,
                     type: 'album',
                     is_explicit: songData.explicit,
-                    features: songData.artists
+                    features
                 });
+
                 await newSong.save();
                 songs.push(newSong._id);
             }

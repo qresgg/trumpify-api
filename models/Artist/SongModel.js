@@ -1,9 +1,13 @@
 const mongoose = require('mongoose');
 
+const roleSchema = new mongoose.Schema({
+    role: { type: String}
+})
+
 const featureSchema = new mongoose.Schema({
-    artist: { type: mongoose.Schema.Types.ObjectId, ref: "Artist", required: true },
+    artist: { type: mongoose.Schema.Types.ObjectId, ref: "Artist"},
     name: { type: String },
-    role: { type: String, required: true },
+    roles: [roleSchema],
 });
 
 const songSchema = new mongoose.Schema({

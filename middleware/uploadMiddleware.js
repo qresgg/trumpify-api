@@ -5,9 +5,9 @@ const { Readable } = require("stream")
 const sharp = require('sharp');
 const mongoose = require('mongoose')
 
-const User = require('../models/UserModel');
-const Song = require('../models/SongModel')
-const Album = require('../models/AlbumModel')
+const User = require('../models/User/UserModel');
+const Song = require('../models/Artist/SongModel')
+const Album = require('../models/Artist/AlbumModel')
 
 require('dotenv').config();
 
@@ -26,8 +26,7 @@ const uploadToCloudinaryAvatar = async (req, res, next) => {
         if (!req.file) {
             return res.status(400).json({ error: "No file uploaded" });
         }
-        const publicId = req.user._id;
-        console.log(publicId);
+        const publicId = req.user.id; 
 
         const allowedTypes = ['image/jpeg', 'image/png'];
         if (!allowedTypes.includes(req.file.mimetype)) {
@@ -165,5 +164,40 @@ const uploadToCloudinaryAlbumCover = async (req, res, next) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
+const uploadToCloudinaryMusic = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
 
-module.exports = { upload, uploadToCloudinaryAvatar, uploadToCloudinarySongCover, uploadToCloudinaryAlbumCover };
+        const allowedTypes = ['audio/mpeg', 'audio/ogg', 'audio/wav'];
+        if (!allowedTypes.includes(req.file.mimetype)) {
+            return res.status(400).json({ error: 'Invalid file type' });
+        }
+
+        const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                {
+                    folder: "songsOGG",
+                    resource_type: "video",
+                    format: "ogg", 
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+
+            Readable.from(req.file.buffer).pipe(uploadStream);
+        });
+
+        res.json({ message: 'Файл успішно завантажено!', url: result.secure_url });
+    } catch (error) {
+        console.error('Помилка обробки файлу:', error);
+        res.status(500).json({ message: 'Server error', error });
+    }
+};
+
+
+
+module.exports = { upload, uploadToCloudinaryAvatar, uploadToCloudinarySongCover, uploadToCloudinaryAlbumCover, uploadToCloudinaryMusic };

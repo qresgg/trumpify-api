@@ -1,12 +1,12 @@
-const User = require('../models/UserModel');
+const User = require('../models/User/UserModel');
 const bcrypt = require('bcrypt');
 
 const changePassword = async (req, res) => {
     try {
         const { password } = req.body;
 
-        const userId = req.user._id;
-        const user = await User.findOne({ _id: userId });
+        const userId = req.user.id;
+        const user = await User.findById( userId ); 
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -25,8 +25,8 @@ const changeEmail = async (req, res) => {
     try {
         const { email, newEmail } = req.body;
 
-        const userId = req.user._id;
-        const user = await User.findOne({ _id: userId });
+        const userId = req.user.id;
+        const user = await User.findById( userId );
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
@@ -46,14 +46,14 @@ const changeEmail = async (req, res) => {
 const changeUserName = async (req, res) => {
     try {
         const { userName } = req.body;
-        const userId = req.user._id;
-        const user = await User.findOne({ _id: userId });
+        const userId = req.user.id;
+        const user = await User.findById( userId );
         if (!user) {
             return res.status(404).json({ message: 'User not found' });
         }
         user.user_name = userName;
         await user.save();
-        res.status(200).json({ message: 'User data updated successfully' });
+        res.status(200).json({ message: 'User data updated successfully', username: user.user_name, avatarUrl: user.url_avatar  });
     } catch (error) {
         console.error('Server error:', error);
         res.status(500).json({ message: 'Server error' });
@@ -67,8 +67,9 @@ const uploadAvatar = async (req, res) => {
         }
 
         const { public_id: newPublicId, secure_url: newAvatarUrl } = req.cloudinaryResult;
+        const userId = req.user.id;
 
-        const user = await User.findById(req.user.id);
+        const user = await User.findById(userId);
         if (!user) {
             return res.status(404).json({ error: "User not found" });
         }

@@ -1,8 +1,9 @@
 const mongoose = require('mongoose');
-const Artist = require('../models/ArtistModel');
-const User = require('../models/UserModel');
-const Song = require('../models/SongModel');
-const Album = require('../models/AlbumModel')
+const Artist = require('../../models/Artist/ArtistModel');
+const User = require('../../models/User/UserModel');
+const Song = require('../../models/Artist/SongModel');
+const Album = require('../../models/Artist/AlbumModel')
+const LikedCol = require('../../models/User/LikedCollectionModel')
 
 const getLikedSongs = async (req, res) => {
     try {
@@ -17,7 +18,11 @@ const getLikedSongs = async (req, res) => {
         if (!user) {
             return res.status(404).json({ message: `User not found`})
         }
-        likedSongsInAlbum = album.songs.filter(songId => user.liked_songs.some(likedSongId => likedSongId.equals(songId)));
+        const likedCol = await LikedCol.findById(user.liked_collection);
+        if (!likedCol){ 
+            return res.status(404).json({ message: 'LikedCollection not found'})
+        }
+        likedSongsInAlbum = album.songs.filter(songId => likedCol.songs.some(likedSongId => likedSongId.equals(songId)));
 
         res.status(200).json({
             likedSongsInAlbum

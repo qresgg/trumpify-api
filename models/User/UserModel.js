@@ -7,7 +7,7 @@ const userSchema = new mongoose.Schema({
     email: { type: String, required: true, unique: true },
     password_hash: { type: String, required: true },
     refresh_token: { type: String },
-    liked_songs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Song" }],
+    liked_collection: { type: mongoose.Schema.Types.ObjectId, ref: "LikedCol"},
     playlists: [{ type: mongoose.Schema.Types.ObjectId, ref: "Playlist" }],
     artist_profile: { type: mongoose.Schema.Types.ObjectId, ref: "Artist", default: null },
     created_at: { type: Date, default: Date.now }
