@@ -2,7 +2,7 @@ const mongoose = require('mongoose')
 const User = require('../../models/User/UserModel');
 const Artist = require('../../models/Artist/ArtistModel');
 const Song = require('../../models/Artist/SongModel')
-const Album = require('../../models/Artist/AlbumModel')
+const Album = require('../../models/Artist/AlbumModel');
 
 const findArtistById = async (req, res) => {
   const { id } = req.params;
@@ -46,4 +46,28 @@ const findUserById = async (req, res) => {
   }
 }
 
-module.exports = { findArtistById, findUserById }
+const findAlbumById = async (req, res) => {
+  const { id } = req.params
+
+  try {
+    const album = await Album.findById(id).populate('songs')
+    if (!album) {
+      res.status(404).json({ message: 'Album is not found'})
+    }
+    res.send(album)
+  } catch (error) {
+    res.status(500).json({ error: err.message })
+  }
+}
+
+// const findPlaylistById = async (req, res) => {
+//   const { id } = req.params
+  
+//   try {
+//     const playlist = await Playlist.findById()
+//   } catch (error) {
+//     res.status(500).json({ error: err.message })
+//   }
+// }
+
+module.exports = { findArtistById, findUserById, findAlbumById }

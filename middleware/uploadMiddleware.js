@@ -54,11 +54,9 @@ const uploadToCloudinaryAvatar = async (req, res, next) => {
         
         const user = await User.findById(publicId)
         user.url_avatar = result.secure_url;
-        user.save();
+        await user.save();
 
         req.cloudinaryResult = result;
-
-
         next();
     } catch (error) {
         console.error('Server error:', error);
@@ -68,7 +66,7 @@ const uploadToCloudinaryAvatar = async (req, res, next) => {
 
 const uploadToCloudinarySongCover = async (req, res, next) => {
     try {
-        if (!req.file) {
+        if (!req.file.cover) {
             await Song.deleteOne({ _id: req.song._id})
             return res.status(400).json({ error: "No file uploaded" });
         }
@@ -100,9 +98,9 @@ const uploadToCloudinarySongCover = async (req, res, next) => {
         
         const song = await Song.findById(publicId)
         song.song_cover = result.secure_url;
-        song.save();
+        await song.save();
 
-        req.cloudinaryResult = result;
+        req.coverResult = result;
         next();
     } catch (error) {
         console.error('Server error:', error);
@@ -112,7 +110,7 @@ const uploadToCloudinarySongCover = async (req, res, next) => {
 
 const uploadToCloudinaryAlbumCover = async (req, res, next) => {
     try {
-        if (!req.file) {
+        if (!req.file.cover) {
             await Album.deleteOne({ _id: req.album._id})
             return res.status(400).json({ error: "No file uploaded" });
         }
@@ -164,9 +162,9 @@ const uploadToCloudinaryAlbumCover = async (req, res, next) => {
         res.status(500).json({ message: 'Server error' });
     }
 };
-const uploadToCloudinaryMusic = async (req, res) => {
+const uploadToCloudinaryMusic = async (req, res, next) => {
     try {
-        if (!req.file) {
+        if (!req.file.audio) {
             return res.status(400).json({ error: "No file uploaded" });
         }
 
@@ -175,12 +173,14 @@ const uploadToCloudinaryMusic = async (req, res) => {
             return res.status(400).json({ error: 'Invalid file type' });
         }
 
+        const song = req.song;
+
         const result = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
                 {
                     folder: "songsOGG",
                     resource_type: "video",
-                    format: "ogg", 
+                    format: "ogg",
                 },
                 (error, result) => {
                     if (error) reject(error);
@@ -191,13 +191,16 @@ const uploadToCloudinaryMusic = async (req, res) => {
             Readable.from(req.file.buffer).pipe(uploadStream);
         });
 
-        res.json({ message: 'Файл успішно завантажено!', url: result.secure_url });
+        song.song_url = result.secure_url;
+        await song.save();
+
+        req.musicResult = result;
+        next();
     } catch (error) {
         console.error('Помилка обробки файлу:', error);
         res.status(500).json({ message: 'Server error', error });
     }
 };
-
 
 
 module.exports = { upload, uploadToCloudinaryAvatar, uploadToCloudinarySongCover, uploadToCloudinaryAlbumCover, uploadToCloudinaryMusic };

@@ -99,7 +99,7 @@ const createSong = async (req, res, next) => {
             features
         });
 
-        newSong.save();
+        await newSong.save();
         artist.songs.push(newSong);
         await artist.save();
 
@@ -190,13 +190,16 @@ const createAlbum = async (req, res, next) => {
     }
 }
 
-const uploadCover = async (req, res, next) => {
+const uploadFinal = async (req, res, next) => {
     try {
-        if (!req.cloudinaryResult) {
+        if (!req.coverResult) {
             return res.status(400).json({ error: "Cover upload failed" });
         }
+        if (!res.musicResult) {
+            return res.status(400).json({ error: 'Music upload failed'})
+        }
 
-        const { public_id: newPublicId, secure_url: newCoverUrl } = req.cloudinaryResult;
+        const { public_id: newPublicId, secure_url: newCoverUrl } = req.coverResult;
 
         res.json({
             message: "Cover uploaded successfully",
@@ -209,4 +212,4 @@ const uploadCover = async (req, res, next) => {
     }
 }
 
-module.exports = { createArtist, createSong, createAlbum, uploadCover};
+module.exports = { createArtist, createSong, createAlbum, uploadFinal};

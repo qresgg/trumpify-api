@@ -47,7 +47,7 @@ const getUserData = async (req, res) => {
 const getAlbumData = async (req, res) => {
   try {
     const result = await Album.find().populate('songs');
-    res.send(result);
+    res.json(result);
   } catch (err) {
     console.error(err);
     res.status(500).send('error');
