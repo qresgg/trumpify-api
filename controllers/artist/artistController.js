@@ -111,84 +111,84 @@ const createSong = async (req, res, next) => {
     }
 }
 
-const createAlbum = async (req, res, next) => {
-    try {
-        const { albumTitle, recordLabel, language, genre, type } = req.body;
-        const userId = req.user.id;
+// const createAlbum = async (req, res, next) => {
+//     try {
+//         const { albumTitle, recordLabel, language, genre, type } = req.body;
+//         const userId = req.user.id;
 
-        const user = await User.findById( userId);
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-        const artist = await Artist.findById( user.artist_profile );
-        if (!artist) {
-            return res.status(404).json({ message: 'Artist not found' });
-        }
+//         const user = await User.findById( userId);
+//         if (!user) {
+//             return res.status(404).json({ message: 'User not found' });
+//         }
+//         const artist = await Artist.findById( user.artist_profile );
+//         if (!artist) {
+//             return res.status(404).json({ message: 'Artist not found' });
+//         }
 
-        const songs = [];
+//         const songs = [];
 
-        const newAlbum = new Album({
-            title: albumTitle,
-            artist: artist._id,
-            record_label: recordLabel,
-            artist_name: artist.name,
-            genre: genre,
-            type: type,
-            language: language
-        });
+//         const newAlbum = new Album({
+//             title: albumTitle,
+//             artist: artist._id,
+//             record_label: recordLabel,
+//             artist_name: artist.name,
+//             genre: genre,
+//             type: type,
+//             language: language
+//         });
 
-        // await newAlbum.save();
+//         // await newAlbum.save();
 
-        if (req.body.songs && Array.isArray(req.body.songs)) {
-            for (const songDataRaw of req.body.songs) {
-                const songData = JSON.parse(songDataRaw);
-                if (!songData.title || !songData.duration) {
-                    return res.status(400).json({ error: 'Song must have a title and duration' });
-                }
-                console.log(songData)
+//         if (req.body.songs && Array.isArray(req.body.songs)) {
+//             for (const songDataRaw of req.body.songs) {
+//                 const songData = JSON.parse(songDataRaw);
+//                 if (!songData.title || !songData.duration) {
+//                     return res.status(400).json({ error: 'Song must have a title and duration' });
+//                 }
+//                 console.log(songData)
                 
-                const features = [];
-                if (songData.artists && Array.isArray(songData.artists)) {
-                    for (const artist of songData.artists) {
-                        features.push({
-                            name: artist.name,
-                            // _id: artist._id,
-                            roles: Array.isArray(artist.roles)
-                            ? artist.roles.map(role => ({ role }))
-                            : []
+//                 const features = [];
+//                 if (songData.artists && Array.isArray(songData.artists)) {
+//                     for (const artist of songData.artists) {
+//                         features.push({
+//                             name: artist.name,
+//                             // _id: artist._id,
+//                             roles: Array.isArray(artist.roles)
+//                             ? artist.roles.map(role => ({ role }))
+//                             : []
             
-                        });
-                    }
-                }
+//                         });
+//                     }
+//                 }
 
-                const newSong = new Song({
-                    title: songData.title,
-                    duration: songData.duration,
-                    artist: artist._id,
-                    album: newAlbum._id,
-                    genre: genre,
-                    type: 'album',
-                    is_explicit: songData.explicit,
-                    features
-                });
+//                 const newSong = new Song({
+//                     title: songData.title,
+//                     duration: songData.duration,
+//                     artist: artist._id,
+//                     album: newAlbum._id,
+//                     genre: genre,
+//                     type: 'album',
+//                     is_explicit: songData.explicit,
+//                     features
+//                 });
 
-                await newSong.save();
-                songs.push(newSong._id);
-            }
-        }
-        newAlbum.songs = songs;
-        await newAlbum.save();
+//                 await newSong.save();
+//                 songs.push(newSong._id);
+//             }
+//         }
+//         newAlbum.songs = songs;
+//         await newAlbum.save();
 
-        artist.albums.push(newAlbum);
-        await artist.save();
+//         artist.albums.push(newAlbum);
+//         await artist.save();
 
-        req.album = newAlbum;
-        next();
-    } catch (error) {
-        console.error('Error creating song:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-}
+//         req.album = newAlbum;
+//         next();
+//     } catch (error) {
+//         console.error('Error creating song:', error);
+//         res.status(500).json({ error: 'Server error' });
+//     }
+// }
 
 const uploadFinal = async (req, res, next) => {
     try {
@@ -212,4 +212,4 @@ const uploadFinal = async (req, res, next) => {
     }
 }
 
-module.exports = { createArtist, createSong, createAlbum, uploadFinal};
+module.exports = { createArtist, createSong, uploadFinal};

@@ -4,8 +4,10 @@ const { parseFeatures } = require('../../services/song/parseFeatures')
 const { createSong } = require('../../services/song/createSong')
 const { deleteSong } = require('../../services/song/deleteSong')
 const { processCoverImage } = require('../../services/upload/processCoverImage')
-const { uploadCoverToCloudinary } = require('../../services/upload/uploadSongCover')
+const { uploadCoverToCloudinary } = require('../../services/upload/uploadCoverToCloudinary')
 const { updateSongWithCover } = require('../../services/upload/updateSongByCover')
+const { uploadSongToCloudinary } = require('../../services/upload/uploadSongToCloudinary')
+const { updateSongWithSong } = require('../../services/upload/updateSongBySong')
 
 const createSongController = async (req, res) => {
     try {
@@ -25,22 +27,30 @@ const createSongController = async (req, res) => {
             await deleteSong(newSong._id);
             return res.status(400).json({ error: 'No cover file uploaded' });
         }
-        const allowedTypes = ['image/jpeg', 'image/png'];
+        const allowedTypesCover = ['image/jpeg', 'image/png'];
         const coverFile = req.files.cover[0];
-        if (!allowedTypes.includes(coverFile.mimetype)) {
+        if (!allowedTypesCover.includes(coverFile.mimetype)) {
             await deleteSong(newSong._id); 
             return res.status(400).json({ error: 'Invalid cover file type' });
         }
 
         const imageBuffer = await processCoverImage(coverFile.buffer);
         const coverResult = await uploadCoverToCloudinary(imageBuffer, newSong._id);
-        const updatedSong = await updateSongWithCover(newSong._id, coverResult.secure_url);
+        const updatedSongCover = await updateSongWithCover(newSong._id, coverResult.secure_url);
+
+        const allowedTypesSong = ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp3'];
+        const audioFile = req.files.audio[0];
+        if (!allowedTypesSong.includes(audioFile.mimetype)) {
+            await deleteSong(newSong._id); 
+            return res.status(400).json({ error: 'Invalid audio file type' });
+        }
+        const audioBuffer = audioFile.buffer;
+        const audioResult = await uploadSongToCloudinary(audioBuffer, newSong._id);
+        const updatedSongAudio = await updateSongWithSong(newSong._id, audioResult.secure_url);
 
         res.status(201).json({
             success: true,
             message: 'Song created successfully',
-            song: updatedSong,
-            coverUrl: coverResult.secure_url,
         });
     } catch (error) {
         console.error('Error creating song:', error);

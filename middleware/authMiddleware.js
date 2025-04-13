@@ -24,7 +24,6 @@ const authenticateToken = async (req, res, next) => {
         if (!refreshToken) {
           return res.status(403).json({ message: 'Refresh token is missing' });
         }
-        
         try {
           const decodedRefreshToken = decodeRefreshToken(refreshToken);
           const userId = decodedRefreshToken.id;

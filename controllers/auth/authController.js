@@ -57,7 +57,7 @@ const login = async (req, res) => {
     const user = await User.findOne({ email: email});
 
     if (!user) {
-      return res.status(400).json({ message: 'user not found' });
+      return res.status(404).json({ message: 'user not found' });
     } 
     const isPasswordCorrect = await bcrypt.compare(password, user.password_hash);
     if (!isPasswordCorrect) {
@@ -73,7 +73,7 @@ const login = async (req, res) => {
     res.cookie('refreshToken', refresh_token, { 
       httpOnly: true, 
       secure: NODE_ENV === 'production',
-      sameSite: NODE_ENV === 'production' ? 'none' : 'strict',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
@@ -81,7 +81,6 @@ const login = async (req, res) => {
     req.session.userName = user.user_name;
     
     res.json({ access_token })
-    
   } catch (error) {
     console.error('Error during login:', error);
     res.status(500).json({ message: 'an error occurred' });

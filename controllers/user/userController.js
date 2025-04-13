@@ -56,7 +56,6 @@ const getAlbumData = async (req, res) => {
 
 const search = async (req, res) => {
   const { query } = req.query;
-  console.log(query)
   
   try{
     const artistResults = await Artist.find({
@@ -74,15 +73,21 @@ const search = async (req, res) => {
         { title: { $regex: query, $options: 'i'}}
       ]
     });
-    console.log(`${artistResults}, ${songResults}, ${albumResults}`)
+    const userResults = await User.find({
+      $or: [
+        { user_name: { $regex: query, $options: 'i' } }
+      ]
+    });
+    console.log(`${artistResults}, ${songResults}, ${albumResults}, ${userResults}`)
     const allResults = [
       ...artistResults.map((result) => ({ type: 'Artist', ...result.toObject()})),
       ...songResults.map((result) => ({ type: 'Song', ...result.toObject()})),
-      ...albumResults.map((result) => ({ type: 'Album', ...result.toObject()}))
+      ...albumResults.map((result) => ({ type: 'Album', ...result.toObject()})),
+      ...userResults.map((result) => ({ type: 'User', ...result.toObject()}))
     ];
 
     if (!query) {
-      return res.json([...artistResults, ...songResults, ...albumResults]);
+      return res.json([...artistResults, ...songResults, ...albumResults, ...userResults]);
     }
 
 
@@ -205,6 +210,10 @@ const getLikedCollection = async (req, res) => {
     }
 
     res.json({
+      _id: likedColl._id,
+      title: 'Liked Songs',
+      user_id: likedColl._id,
+      privacy_type: likedColl.privacy_type,
       songs: likedSongs
     })
     

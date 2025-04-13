@@ -38,7 +38,7 @@ const findUserById = async (req, res) => {
     }
     res.json({
       user_name: user.user_name,
-      user_avatar: user.url_avatar,
+      user_avatar_url: user.url_avatar,
       user_playlists: user.playlists,
     })
   } catch(err) {

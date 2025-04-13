@@ -13,7 +13,7 @@ const featureSchema = new mongoose.Schema({
 const songSchema = new mongoose.Schema({
     title: { type: String, required: true },
     artist: { type: mongoose.Schema.Types.ObjectId, ref: "Artist", required: true },
-    definition: { type: String, default: 'User', immutable: true },
+    definition: { type: String, default: 'Song', immutable: true },
     features: [featureSchema],
     song_cover: { type: String, default: 'none'},
     song_file: { type: String, default: 'none'},
