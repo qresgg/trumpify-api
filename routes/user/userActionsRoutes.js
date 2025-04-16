@@ -1,6 +1,6 @@
 const express = require('express')
 const { authenticateToken } = require('../../middleware/authMiddleware');
-const { likeSong, unLikeSong} = require('../../controllers/user/userController');
+const { likeSong, unLikeSong} = require('../../controllers/api/userController');
 const { getLikedSongs } = require('../../middleware/album/getLikedSongs');
 const { sendLikedSong } = require('../../middleware/song/sendLikedSong');
 const actionRouter = express.Router();

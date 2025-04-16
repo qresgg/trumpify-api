@@ -3,27 +3,38 @@ const Artist = require('../../models/Artist/ArtistModel');
 const Song = require('../../models/Artist/SongModel')
 const Album = require('../../models/Artist/AlbumModel')
 const LikedCol = require('../../models/User/LikedCollectionModel')
-const mongoose = require('mongoose')
+const mongoose = require('mongoose');
+const { findUserById } = require('../../services/global/findUser');
+const { findArtistById } = require('../../services/global/findArtist');
+const { findLikedColById } = require('../../services/global/findLikedCol');
+const { findSongById } = require('../../services/global/findSong');
+const { findAlbumByIdWithSongs } = require('../../services/global/findAlbum');
 
 const getUserData = async (req, res) => {
   try {
+    if (!req.user || !req.user.id) {
+      return res.status(400).json({ message: 'User not authenticated or user ID missing' });
+    }
     console.log('Request received for user id:', req.user);
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    
-    const artist = await Artist.findById(user.artist_profile);
-
-    const likedCol = await LikedCol.findById( user.liked_collection );
-    if (!likedCol) {
-      return res.status(404).json({ message: 'LikedCol not found'})
-    }
+    const user = await findUserById(userId);
+    const artist = await findArtistById(user.artist_profile);
+    const likedCol = await findLikedColById(user.liked_collection);
     
     const first20LikedSongs = likedCol ? likedCol.songs.slice(0, 20) : [];
-
+    const first20libraryItems = user.library ? user.library.slice(0, 20) : [];
+    const libraryItems = [];
+    for (const itemId of first20libraryItems) {
+      try {
+        const album = await findAlbumByIdWithSongs(itemId);
+        if (album) {
+          libraryItems.push(album);
+        }
+      } catch (error) {
+        console.error(`Error finding album with ID ${itemId}:`, error);
+      }
+    }
     res.json({
       user: {
         user_avatar_url: user.url_avatar,
@@ -31,7 +42,8 @@ const getUserData = async (req, res) => {
         user_name: user.user_name,
         user_email: user.email,
         user_likedSongsCount: likedCol.songs.length,
-        user_likedSongsList: first20LikedSongs
+        user_likedSongsList: first20LikedSongs,
+        user_library: libraryItems,
       },
       artist: artist ? {
         artist_id: artist._id,
@@ -108,21 +120,9 @@ const likeSong = async (req, res) => {
     const songId = song._id;
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User is not found' });
-    }
-    const likedCol = await LikedCol.findById(user.liked_collection);
-    if (!likedCol) {
-      return res.status(404).json({ message: 'Liked Collection not exists'})
-    }
-    if (likedCol.songs.includes(songId)) {
-      return res.status(400).json({ message: 'Song is already liked' });
-    }
-    const songFind = await Song.findById(songId);
-    if (!songFind) {
-      return res.status(404).json({ message: 'Song is not found' });
-    }
+    const user = await findUserById(userId);
+    const likedCol = await findLikedColById(user.liked_collection);
+    const songFind = await findSongById(songId);
 
     likedCol.songs.push(songId)
     songFind.likesCount += 1;
@@ -153,18 +153,9 @@ const unLikeSong = async (req, res) => {
     const songId = song._id;
     const userId = req.user.id;
 
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User is not found' });
-    }
-    const likedCol = await LikedCol.findById(user.liked_collection);
-    if (!likedCol) {
-      return res.status(404).json({ message: 'Liked Collection is not found'})
-    }
-    const songFind = await Song.findById(songId);
-    if (!Song) {
-      return res.status(404).json({ message: 'Song is not found' });
-    }
+    const user = await findUserById(userId);
+    const likedCol = await findLikedColById(user.liked_collection);
+    const songFind = await findSongById(songId);
     
     likedCol.songs.pull(songFind)
     songFind.likesCount -= 1;
@@ -188,14 +179,9 @@ const unLikeSong = async (req, res) => {
 const getLikedCollection = async (req, res) => {
   try {
     const userId = req.user.id;
-    const user = await User.findById( userId );
-    if (!user) {
-      return res.status(404).json({ message: 'User not found'})
-    }
-    const likedColl = await LikedCol.findById( user.liked_collection );
-    if (!likedColl) {
-      return res.status(404).json({ message: 'Liked collection not found' })
-    }
+
+    const user = await findUserById(userId);
+    const likedColl = await findLikedColById(user.liked_collection);
 
     const likedSongs = [];
     const limit = 25;
@@ -218,9 +204,36 @@ const getLikedCollection = async (req, res) => {
     })
     
   } catch (error) {
-    console.error( error );
+    console.error('Server error:', error);
+    res.status(500).json({ message: 'Server error' });
   }
 }
 
+const getLibrary = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const user = await findUserById(userId);
+    const first20libraryItems = user.library ? user.library.slice(0, 20) : [];
+    const libraryItems = [];
+    for (const itemId of first20libraryItems) {
+      try {
+        const album = await findAlbumByIdWithSongs(itemId);
+        if (album) {
+          libraryItems.push(album);
+        }
+      } catch (error) {
+        console.error(`Error finding album with ID ${itemId}:`, error);
+      }
+    }
 
-module.exports = { getUserData, likeSong, unLikeSong, search, getAlbumData, getLikedCollection};
+    res.json({
+      libraryItems
+    });
+
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+} 
+
+module.exports = { getUserData, likeSong, unLikeSong, search, getAlbumData, getLikedCollection, getLibrary};

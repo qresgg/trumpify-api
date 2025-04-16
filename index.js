@@ -1,10 +1,8 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const session = require('express-session')
-const bcrypt = require('bcrypt')
 const cors = require('cors');
 const cookieParser = require('cookie-parser')
-const jwt = require('jsonwebtoken')
 const { connectDB } = require('./database/mongodb')
 
 const authRoutes = require('./routes/auth/authRoutes');
@@ -13,8 +11,6 @@ const artistRoutes = require('./routes/artist/artistRoutes');
 const settingsRoutes = require('./routes/user/settingsRoutes');
 const actionRoutes = require('./routes/user/userActionsRoutes');
 const findRoutes = require('./routes/find/findRoutes');
-
-// const TokenSchema = require('./models/Token')
 
 require('dotenv').config();
 

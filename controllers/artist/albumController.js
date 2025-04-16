@@ -1,5 +1,6 @@
 const { findUserById } = require("../../services/global/findUser");
 const { findArtistById } = require("../../services/global/findArtist");
+const { findAlbumById } = require("../../services/global/findAlbum");
 const { createAlbum } = require("../../services/album/createAlbum");
 const { parseFeatures } = require("../../services/song/parseFeatures");
 const { createSongInAlbum } = require("../../services/album/createSongInAlbum");
@@ -81,4 +82,44 @@ const createAlbumController = async (req, res) => {
     }
 }
 
-module.exports = { createAlbumController };
+const likeAlbum = async (req, res) => {
+    try{ 
+        const { album } = req.body;
+        const userId = req.user.id;
+        const user = await findUserById(userId);
+        const playlist = await findAlbumById(album._id);
+
+        user.library.push(playlist._id);
+        await user.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Playlist/Album has been liked successfully',
+        });
+    } catch (error) {
+        console.error('Error liking album:', error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
+const unlikeAlbum = async (req, res) => {
+    try{ 
+        const { album } = req.body;
+        const userId = req.user.id;
+        const user = await findUserById(userId);
+        const playlist = await findAlbumById(album._id);
+
+        user.library.pull(playlist._id);
+        await user.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Playlist/Album has been liked successfully',
+        });
+    } catch (error) {
+        console.error('Error liking album:', error);
+        res.status(500).json({ error: error.message });
+    }
+}
+
+module.exports = { createAlbumController, likeAlbum, unlikeAlbum };

@@ -8,4 +8,12 @@ const findAlbumById = async (albumId) => {
     return album;
 };
 
-module.exports = { findAlbumById };
+const findAlbumByIdWithSongs = async (albumId) => {
+    const album = await Album.findById(albumId).populate('songs');
+    if (!album) {
+        throw new Error('Album not found');
+    }
+    return album;
+};
+
+module.exports = { findAlbumById, findAlbumByIdWithSongs };
