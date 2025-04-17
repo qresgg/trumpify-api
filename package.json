@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "kill-port 8080 && nodemon"
+    "start": "kill-port 8080 && nodemon",
+    "prod": "node index.js"
   },
   "keywords": [],
   "author": "",
