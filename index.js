@@ -22,7 +22,7 @@ connectDB()
 
 app.use(cookieParser())
 app.use(cors({
-  origin: 'https://trumpify-client.onrender.com',
+  origin: 'https://music-online-l49p.onrender.com',
   credentials: true,
 }));
 
