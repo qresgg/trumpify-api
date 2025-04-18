@@ -20,8 +20,11 @@ const app = express();
 
 connectDB()
 
+app.use(cors({
+  credentials: true,
+}));
 app.use(cookieParser())
-app.use(cors());
+
 
 app.use(session({
   secret: SECRETKEY_COOKIES,
