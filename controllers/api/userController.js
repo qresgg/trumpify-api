@@ -19,7 +19,8 @@ const getUserData = async (req, res) => {
     const userId = req.user.id;
 
     const user = await findUserById(userId);
-    const artist = await findArtistById(user.artist_profile);
+    const artist = await Artist.findById(user.artist_id);
+    
     const likedCol = await findLikedColById(user.liked_collection);
     
     const first20LikedSongs = likedCol ? likedCol.songs.slice(0, 20) : [];
