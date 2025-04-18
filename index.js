@@ -21,6 +21,7 @@ const app = express();
 connectDB()
 
 app.use(cors({
+  origin: ['http://localhost:3000', 'https://music-online-l49p.onrender.com'],
   credentials: true,
 }));
 app.use(cookieParser())
