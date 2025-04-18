@@ -21,10 +21,12 @@ const app = express();
 connectDB()
 
 app.use(cookieParser())
-app.options('*', cors({
-  origin: 'https://music-online-l49p.onrender.com',
-  credentials: true,
-}));
+app.use((req, res, next) => {
+  res.setHeader("Accept-Control-Allow-Origin", "*");
+  res.setHeader("Accept-Control-Allow-Methods", "GET, POST, PUT, DELETE");
+  res.setHeader("Accept-Control-Allow-Headers", "Content-Type, Authorization");
+  next()
+});
 
 app.use(session({
   secret: SECRETKEY_COOKIES,
