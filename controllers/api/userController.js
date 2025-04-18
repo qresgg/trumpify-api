@@ -15,7 +15,7 @@ const getUserData = async (req, res) => {
     if (!req.user || !req.user.id) {
       return res.status(400).json({ message: 'User not authenticated or user ID missing' });
     }
-    console.log('Request received for user id:', req.user);
+    console.log('Request received for user id:', req.user.id);
     const userId = req.user.id;
 
     const user = await findUserById(userId);
