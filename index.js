@@ -15,13 +15,13 @@ const findRoutes = require('./routes/find/findRoutes');
 require('dotenv').config();
 
 const PORT = process.env.PORT || 4000;
-const { SECRETKEY_COOKIES, NODE_ENV } = process.env;
+const { SECRETKEY_COOKIES, NODE_ENV, PROD_CLIENT_URL, DEV_CLIENT_URL } = process.env;
 const app = express();
 
 connectDB()
 
 app.use(cors({
-  origin: ['http://localhost:3000', 'https://music-online-l49p.onrender.com'],
+  origin: NODE_ENV === 'production' ? PROD_CLIENT_URL  : DEV_CLIENT_URL,
   credentials: true,
 }));
 app.use(cookieParser())
