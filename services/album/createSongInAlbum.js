@@ -6,6 +6,7 @@ const createSongInAlbum = async (songData, features, artist, cover) => {
         artist: artist._id,
         song_cover: cover,
         genre: songData.genre,
+        duration: songData.duration,
         type: 'Album',
         is_explicit: songData.explicit,
         features: features,

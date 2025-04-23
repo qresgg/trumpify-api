@@ -11,6 +11,7 @@ const { updateSongWithSong } = require('../../services/upload/updateSongBySong')
 
 const createSongController = async (req, res) => {
     try {
+        console.log(req.body)
         const { title, genre, duration, type, explicit, artists } = req.body;
         const userId = req.user.id;
 
@@ -50,7 +51,7 @@ const createSongController = async (req, res) => {
 
         res.status(201).json({
             success: true,
-            message: 'Song created successfully',
+            message: 'Song has been created successfully',
         });
     } catch (error) {
         console.error('Error creating song:', error);

@@ -15,6 +15,7 @@ const { updateAlbumWithCover } = require("../../services/upload/updateAlbumByCov
 
 const createAlbumController = async (req, res) => {
     try {
+
         const { albumTitle, recordLabel, language, genre, type } = req.body
         const userId = req.user.id;
 
