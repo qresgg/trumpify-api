@@ -11,7 +11,6 @@ const { updateSongWithSong } = require('../../services/upload/updateSongBySong')
 
 const createSongController = async (req, res) => {
     try {
-        console.log(req.body)
         const { title, genre, duration, type, explicit, artists } = req.body;
         const userId = req.user.id;
 
