@@ -6,7 +6,7 @@ const cookieParser = require('cookie-parser')
 const { connectDB } = require('./database/mongodb')
 
 const authRoutes = require('./routes/auth/authRoutes');
-const apiRoutes = require('./routes/api/userRoutes');
+const apiRoutes = require('./routes/api/apiRoutes');
 const artistRoutes = require('./routes/artist/artistRoutes');
 const settingsRoutes = require('./routes/user/settingsRoutes');
 const actionRoutes = require('./routes/user/userActionsRoutes');

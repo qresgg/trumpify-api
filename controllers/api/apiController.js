@@ -57,16 +57,6 @@ const getUserData = async (req, res) => {
   }
 };
 
-const getAlbumData = async (req, res) => {
-  try {
-    const result = await Album.find().populate('songs');
-    res.json(result);
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('error');
-  }
-}
-
 const search = async (req, res) => {
   const { query } = req.query;
   
@@ -236,5 +226,33 @@ const getLibrary = async (req, res) => {
     res.status(500).json({ message: 'Server error' });
   }
 } 
+const getAlbumData = async (req, res) => {
+  try {
+    const result = await Album.find().populate('songs');
+    res.json(result);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send('error');
+  }
+}
 
-module.exports = { getUserData, likeSong, unLikeSong, search, getAlbumData, getLikedCollection, getLibrary};
+const getSongData = async (req, res) => {
+  try {
+    const result = await Song.find({ type: { $ne: "Album" } }).populate('features');
+    res.json(result);
+  } catch (error) {
+    console.log('Server error', error);
+    res.status(500).json({ message: 'Server error '})
+  }
+}
+
+module.exports = { 
+  getUserData, 
+  likeSong, 
+  unLikeSong, 
+  search, 
+  getAlbumData, 
+  getLikedCollection, 
+  getLibrary,
+  getSongData
+};
