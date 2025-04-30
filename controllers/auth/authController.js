@@ -6,6 +6,9 @@ const { SECRETKEY_ACCESS, SECRETKEY_REFRESH, NODE_ENV } = process.env;
 const Album = require('../../models/Artist/AlbumModel');
 const User = require('../../models/User/UserModel');
 const LikedCol = require('../../models/User/LikedCollectionModel')
+const { findUserByEmail, findUserByEmailExists } = require("../../services/global/findUser")
+const { createPassword, verifyPassword } = require("../../services/global/password")
+const { createUser, createLikedCollection } = require("../../services/user/createUser")
 
 const { generateAccessToken, generateRefreshToken } = require('../../middleware/token')
 
@@ -15,34 +18,12 @@ const register = async (req, res) => {
     if (!username || !email || !password) {
       return res.status(400).json({ message: 'All fields are required' });
     }
+    await findUserByEmailExists(email);
+    const hashedPassword = await createPassword(password);
 
-    const userNameExists = await User.findOne({ user_name: username });
-    const emailExists = await User.findOne({ email: email });
+    const newUser = await createUser( username, email, hashedPassword);  
 
-    if (userNameExists) {
-      return res.status(400).json({ message: 'username already exists' });
-    }
-    if (emailExists) {
-      return res.status(400).json({ message: 'email already exists' });
-    }
-
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    const newUser = new User({
-      user_name: username,
-      email: email,
-      password_hash: hashedPassword,
-      created_at: Date.now()
-    });    
-    await newUser.save();
-
-    const newLikedCollection = new LikedCol({
-      user_id: newUser._id,
-    })
-    await newLikedCollection.save(); 
-    
-    newUser.liked_collection = newLikedCollection._id;
-    await newUser.save();
+    await createLikedCollection( newUser );
 
     res.status(201).json({ message: 'user registered successfully' });
   } catch (error) {
@@ -54,15 +35,9 @@ const register = async (req, res) => {
 const login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    const user = await User.findOne({ email: email});
 
-    if (!user) {
-      return res.status(404).json({ message: 'user not found' });
-    } 
-    const isPasswordCorrect = await bcrypt.compare(password, user.password_hash);
-    if (!isPasswordCorrect) {
-      return res.status(400).json({ message: 'incorrect password' });
-    }
+    const user = await findUserByEmail(email);
+    await verifyPassword(password, user.password_hash);
     
     const access_token = generateAccessToken(user);
     const refresh_token = generateRefreshToken(user);
@@ -73,7 +48,7 @@ const login = async (req, res) => {
     res.cookie('refreshToken', refresh_token, { 
       httpOnly: true, 
       secure: NODE_ENV === 'production',
-      sameSite: 'none',
+      sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 

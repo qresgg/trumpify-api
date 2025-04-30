@@ -1,5 +1,5 @@
 const express = require('express')
-const { createArtist } = require("../../controllers/artist/artistController")
+const { registerArtist, getPopularSongs } = require("../../controllers/artist/artistController")
 const { authenticateToken } = require('../../middleware/authMiddleware');
 const { upload } = require('../../middleware/uploadMiddleware');
 const { findArtistById } = require('../../controllers/search/searchController');
@@ -8,14 +8,13 @@ const { createAlbumController, likeAlbum, unlikeAlbum } = require('../../control
 
 const artistRouter = express.Router();
 
-artistRouter.post('/create-artist', authenticateToken, createArtist)
+artistRouter.post('/create-artist', authenticateToken, registerArtist)
 artistRouter.post('/create-song', authenticateToken, upload.fields([{name: 'cover'}, { name: 'audio'}]), createSongController)
 artistRouter.post('/create-album', authenticateToken, upload.any(), createAlbumController);
 
 artistRouter.put('/like-album', authenticateToken, likeAlbum);
 artistRouter.put('/unlike-album', authenticateToken, unlikeAlbum);
 
-
-artistRouter.get('/find/:id', findArtistById)
+artistRouter.get('/getPopularSongs/:id', getPopularSongs)
 
 module.exports = artistRouter;

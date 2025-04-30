@@ -8,4 +8,19 @@ const findUserById = async (userId) => {
     return user;
 };
 
-module.exports = { findUserById };
+const findUserByEmail = async (userEmail) => {
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+        throw new Error('User not found');
+    }
+    return user;
+}
+
+const findUserByEmailExists = async (userEmail) => {
+    const user = await User.findOne({ email: userEmail });
+    if (user) {
+        throw new Error('User is already exists');
+    }
+}
+
+module.exports = { findUserById, findUserByEmail, findUserByEmailExists };

@@ -8,7 +8,7 @@ const playlistSchema = new mongoose.Schema({
     title: { type: String, required: true },
     description: { type: String },
     songs: [{ type: mongoose.Schema.Types.ObjectId, ref: "Song" }],
-    createdAt: { type: Date, default: Date.now }
+    created_at: { type: Date, default: Date.now }
 }, {collection: "playlistData"});
   
 module.exports = mongoose.model("Playlist", playlistSchema);

@@ -8,4 +8,12 @@ const findArtistById = async (artistId) => {
     return artist;
 };
 
-module.exports = { findArtistById };
+const findArtistByName = async (artistName) => {
+    const artist = await Artist.findOne({ name: artistName})
+    if (artist) {
+        throw new Error('Artist is already exists');
+    }
+    return artist;
+}
+
+module.exports = { findArtistById, findArtistByName };

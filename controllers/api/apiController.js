@@ -116,7 +116,7 @@ const likeSong = async (req, res) => {
     const songFind = await findSongById(songId);
 
     likedCol.songs.push(songId)
-    songFind.likesCount += 1;
+    songFind.likes_count += 1;
     
     await songFind.save({ session });
     await likedCol.save({ session });
@@ -149,7 +149,7 @@ const unLikeSong = async (req, res) => {
     const songFind = await findSongById(songId);
     
     likedCol.songs.pull(songFind)
-    songFind.likesCount -= 1;
+    songFind.likes_count -= 1;
     await likedCol.save({ session });
     await songFind.save({ session });
 

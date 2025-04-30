@@ -23,8 +23,8 @@ const songSchema = new mongoose.Schema({
     type: { type: String },
     is_explicit: { type: Boolean },
     playback: { type: Number, default: 0},
-    likesCount: { type: Number, default: 0 },
-    createdAt: { type: Date, default: Date.now }
+    likes_count: { type: Number, default: 0 },
+    created_at: { type: Date, default: Date.now }
 }, { collection: "songsData" });
   
 module.exports = mongoose.model("Song", songSchema);

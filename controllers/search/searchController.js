@@ -21,7 +21,8 @@ const findArtistById = async (req, res) => {
       artist_bio: artist.bio,
       artist_is_verified: artist.is_verified,
       artist_albums: artist.songs,
-      artist_songs: artist.albums
+      artist_songs: artist.albums,
+      artist_id: artist._id
     });
   } catch(err) {
     res.status(500).json({ error: err.message })
