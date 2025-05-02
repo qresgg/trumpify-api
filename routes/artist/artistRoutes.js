@@ -15,6 +15,6 @@ artistRouter.post('/create-album', authenticateToken, upload.any(), createAlbumC
 artistRouter.put('/like-album', authenticateToken, likeAlbum);
 artistRouter.put('/unlike-album', authenticateToken, unlikeAlbum);
 
-artistRouter.get('/getPopularSongs/:id', getPopularSongs)
+artistRouter.get('/getPopularSongs/:id', authenticateToken, getPopularSongs)
 
 module.exports = artistRouter;

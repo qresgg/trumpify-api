@@ -20,8 +20,8 @@ const findArtistById = async (req, res) => {
       artist_name: artist.name,
       artist_bio: artist.bio,
       artist_is_verified: artist.is_verified,
-      artist_albums: artist.songs,
-      artist_songs: artist.albums,
+      artist_albums: artist.albums,
+      artist_songs: artist.songs,
       artist_id: artist._id
     });
   } catch(err) {

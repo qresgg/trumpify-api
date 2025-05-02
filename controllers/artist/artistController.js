@@ -33,9 +33,9 @@ const registerArtist = async (req, res) => {
 
 const getPopularSongs = async (req, res) => {
     try{ 
-        const { artistId } = req.params;
-        if (!artistId) return res.status(400).json({ message: 'Artist ID is required'});
-        const songs = await Song.find({ artistId })
+        const { id } = req.params;
+        if (!id) return res.status(400).json({ message: 'Artist ID is required'});
+        const songs = await Song.find({ artist: id })
             .sort({ playback: -1, created_at: -1})
             .limit(10);
 
