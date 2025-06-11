@@ -9,6 +9,7 @@ const { findArtistById } = require('../../services/global/findArtist');
 const { findLikedColById } = require('../../services/global/findLikedCol');
 const { findSongById } = require('../../services/global/findSong');
 const { findAlbumByIdWithSongs } = require('../../services/global/findAlbum');
+const { findArtistByIdNotStrict } = require('../../services/global/findArtist');
 
 const getUserData = async (req, res) => {
   try {
@@ -19,7 +20,8 @@ const getUserData = async (req, res) => {
     const userId = req.user.id;
 
     const user = await findUserById(userId);
-    const artist = await Artist.findOne({ _id: String(user.artist_profile) });
+    const artist = await Artist.findById(user.artist_profile);
+    console.log(artist)
     
     const likedCol = await findLikedColById(user.liked_collection);
     

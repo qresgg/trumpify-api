@@ -16,4 +16,11 @@ const findArtistByName = async (artistName) => {
     return artist;
 }
 
-module.exports = { findArtistById, findArtistByName };
+const findArtistByIdNotStrict = async (artistId) => {
+    const artist = await Artist.findById(artistId);
+    if (!artist) {
+    }
+    return artist
+}
+
+module.exports = { findArtistById, findArtistByName, findArtistByIdNotStrict };
