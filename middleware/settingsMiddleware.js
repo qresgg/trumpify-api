@@ -1,5 +1,7 @@
 const User = require('../models/User/UserModel');
 const bcrypt = require('bcrypt');
+const Artist = require('../models/Artist/ArtistModel');
+const Album = require('../models/Artist/AlbumModel');
 
 const changePassword = async (req, res) => {
     try {
@@ -85,4 +87,52 @@ const uploadAvatar = async (req, res) => {
     }
 };
 
-module.exports = { changePassword, changeEmail, changeUserName, uploadAvatar};
+const changeArtistName = async (req, res) => {
+    try {
+        const { artistName } = req.body;
+        const userId = req.user.id;
+
+        const user = await findUserById(userId);
+        const artist = await findArtistById(user.artist_profile);
+
+        artist.name = artistName;
+        await artist.save();
+
+        const albums = await Album.find({ artist: artist._id });
+        for (const album of albums) {
+            album.artist_name = artistName;
+            await album.save();
+        }
+
+        res.status(200).json({ message: 'Artist name updated successfully' });
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const changeArtistBio = async (req, res) => {
+    try {
+        const { bio } = req.body;
+        const userId = req.user.id;
+
+        const user = await findUserById(userId);
+        const artist = await findArtistById(user.artist_profile);
+
+        artist.bio = bio;
+        await artist.save();
+        res.status(200).json({ message: 'Bio updated successfully' });
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+module.exports = { 
+    changePassword, 
+    changeEmail, 
+    changeUserName, 
+    uploadAvatar,
+    changeArtistName,
+    changeArtistBio
+};
