@@ -3,6 +3,9 @@ const bcrypt = require('bcrypt');
 const Artist = require('../models/Artist/ArtistModel');
 const Album = require('../models/Artist/AlbumModel');
 
+const { findUserById } = require('../services/global/findUser');
+const { findArtistById } = require('../services/global/findArtist');
+
 const changePassword = async (req, res) => {
     try {
         const { password } = req.body;
@@ -93,6 +96,7 @@ const changeArtistName = async (req, res) => {
         const userId = req.user.id;
 
         const user = await findUserById(userId);
+        console.log(userId)
         const artist = await findArtistById(user.artist_profile);
 
         artist.name = artistName;
