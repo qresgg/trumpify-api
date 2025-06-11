@@ -6,6 +6,7 @@ const artistSchema = new mongoose.Schema({
     artist_avatar: { type: String, default: "none"},
     artist_listeners: { type: Number, default: 0},
     artist_subscribers: { type: Number, default: 0},
+    artist_banner: { type: String, default: "none" },
     name: { type: String, required: true, unique: true },
     bio: { type: String },
     is_verified: { type: Boolean, default: false },

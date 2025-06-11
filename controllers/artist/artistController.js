@@ -35,6 +35,10 @@ const getPopularSongs = async (req, res) => {
     try{ 
         const { id } = req.params;
         if (!id) return res.status(400).json({ message: 'Artist ID is required'});
+
+        const artist = await findArtistById(id);
+        if (!artist) return res.status(404).json({ message: 'Artist not found' });
+
         const songs = await Song.find({ artist: id })
             .sort({ playback: -1, created_at: -1})
             .limit(10);
@@ -43,6 +47,66 @@ const getPopularSongs = async (req, res) => {
         res.json(songs);
     } catch (error) {
         console.error('Error getting popular songs:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+const popularMix = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) return res.status(400).json({ message: 'Artist ID is required' });
+
+        const artist = await findArtistById(id);
+        if (!artist) return res.status(404).json({ message: 'Artist not found' });
+
+        const songs = await Song.find({ artist: id })
+            .sort({ playback: -1 })
+            .limit(10);
+
+        if (!songs.length) return res.status(404).json({ message: 'No popular songs found for this artist' });
+        res.json(songs);
+    } catch (error) {
+        console.error('Error fetching popular mix:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+const singlesMix = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) return res.status(400).json({ message: 'Artist ID is required' });
+
+        const artist = await findArtistById(id);
+        if (!artist) return res.status(404).json({ message: 'Artist not found' });
+
+        const singles = await Song.find({ artist: id, type: 'single' })
+            .sort({ created_at: -1 })
+            .limit(10);
+
+        if (!singles.length) return res.status(404).json({ message: 'No singles found for this artist' });
+        res.json(singles);
+    } catch (error) {
+        console.error('Error fetching singles:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+}
+
+const albumsMix = async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!id) return res.status(400).json({ message: 'Artist ID is required' });
+
+        const artist = await findArtistById(id);
+        if (!artist) return res.status(404).json({ message: 'Artist not found' });
+
+        const albums = await Album.find({ artist: id })
+            .sort({ created_at: -1 })
+            .limit(10);
+
+        if (!albums.length) return res.status(404).json({ message: 'No albums found for this artist' });
+        res.json(albums);
+    } catch (error) {
+        console.error('Error fetching albums:', error);
         res.status(500).json({ error: 'Server error' });
     }
 }

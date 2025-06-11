@@ -7,7 +7,9 @@ const mongoose = require('mongoose')
 
 const User = require('../models/User/UserModel');
 const Song = require('../models/Artist/SongModel')
-const Album = require('../models/Artist/AlbumModel')
+const Album = require('../models/Artist/AlbumModel');
+const { findArtistById } = require('../services/global/findArtist');
+const { findUserById } = require('../services/global/findUser');
 
 require('dotenv').config();
 
@@ -64,5 +66,89 @@ const uploadToCloudinaryAvatar = async (req, res, next) => {
     }
 };
 
+const uploadToCloudinaryArtistAvatar = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
 
-module.exports = { upload, uploadToCloudinaryAvatar };
+        const publicId = req.user.id; 
+
+        const user = await findUserById(publicId)
+        const artist = await findArtistById(user.artist_profile);
+
+        const allowedTypes = ['image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(req.file.mimetype)) {
+            return res.status(400).json({ error: 'Invalid file type' });
+        }
+        const imageBuffer = await sharp(req.file.buffer)
+            .toFormat('png')
+            .toBuffer();
+        const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                { 
+                    folder: "artistAvatars",
+                    public_id: publicId,
+                    format: 'png'
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+
+            Readable.from(imageBuffer).pipe(uploadStream);
+        });
+    
+        artist.artist_avatar = result.secure_url;
+        await artist.save();
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+const uploadToCloudinaryArtistBanner = async (req, res, next) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ error: "No file uploaded" });
+        }
+
+        const publicId = req.user.id; 
+
+        const user = await findUserById(publicId)
+        const artist = await findArtistById(user.artist_profile);
+        
+        const allowedTypes = ['image/jpeg', 'image/png'];
+        if (!allowedTypes.includes(req.file.mimetype)) {
+            return res.status(400).json({ error: 'Invalid file type' });
+        }
+        const imageBuffer = await sharp(req.file.buffer)
+            .toFormat('png')
+            .toBuffer();
+        const result = await new Promise((resolve, reject) => {
+            const uploadStream = cloudinary.uploader.upload_stream(
+                { 
+                    folder: "artistBanners",
+                    public_id: publicId,
+                    format: 'png'
+                },
+                (error, result) => {
+                    if (error) reject(error);
+                    else resolve(result);
+                }
+            );
+
+            Readable.from(imageBuffer).pipe(uploadStream);
+        });
+    
+        artist.artist_banner = result.secure_url;
+        await artist.save();
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+};
+
+
+module.exports = { upload, uploadToCloudinaryAvatar, uploadToCloudinaryArtistAvatar, uploadToCloudinaryArtistBanner };

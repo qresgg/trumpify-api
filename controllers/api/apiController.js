@@ -19,7 +19,7 @@ const getUserData = async (req, res) => {
     const userId = req.user.id;
 
     const user = await findUserById(userId);
-    const artist = await Artist.findById(user.artist_id);
+    const artist = await Artist.findOne({ _id: String(user.artist_profile) });
     
     const likedCol = await findLikedColById(user.liked_collection);
     
@@ -49,6 +49,9 @@ const getUserData = async (req, res) => {
       artist: artist ? {
         artist_id: artist._id,
         artist_name: artist.name ,
+        artist_isVerified: artist.is_verified,
+        artist_avatar: artist.artist_avatar,
+        artist_banner: artist.artist_banner,
       } : 'none'
     });
   } catch (error) {
