@@ -1,11 +1,13 @@
 const express = require('express')
 const { authenticateToken } = require('../../middleware/authMiddleware');
-const { findArtistById, findUserById, findAlbumById } = require('../../controllers/search/searchController')
+const { searchArtistById, searchUserById, searchAlbumById, searchArtistByName } = require('../../controllers/search/searchController')
 
 const findRouter = express.Router();
 
-findRouter.get('/Artist/:id', authenticateToken, findArtistById)
-findRouter.get('/User/:id', authenticateToken, findUserById)
-findRouter.get('/Album/:id', authenticateToken, findAlbumById)
+findRouter.get('/Artist/:id', authenticateToken, searchArtistById)
+findRouter.get('/User/:id', authenticateToken, searchUserById)
+findRouter.get('/Album/:id', authenticateToken, searchAlbumById)
+
+findRouter.get('/Artist', authenticateToken, searchArtistByName)
 
 module.exports = findRouter;

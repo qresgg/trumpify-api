@@ -4,7 +4,7 @@ const Artist = require('../../models/Artist/ArtistModel');
 const Song = require('../../models/Artist/SongModel')
 const Album = require('../../models/Artist/AlbumModel');
 
-const findArtistById = async (req, res) => {
+const searchArtistById = async (req, res) => {
   const { id } = req.params;
 
   try{
@@ -15,6 +15,7 @@ const findArtistById = async (req, res) => {
 
     res.json({
       artist_avatar: artist.artist_avatar,
+      artist_banner: artist.artist_banner,
       artist_listeners: artist.artist_listeners,
       artist_subscribers: artist.artist_subscribers,
       artist_name: artist.name,
@@ -29,7 +30,7 @@ const findArtistById = async (req, res) => {
   }
 }
 
-const findUserById = async (req, res) => {
+const searchUserById = async (req, res) => {
   const { id } = req.params
 
   try {
@@ -47,7 +48,7 @@ const findUserById = async (req, res) => {
   }
 }
 
-const findAlbumById = async (req, res) => {
+const searchAlbumById = async (req, res) => {
   const { id } = req.params
 
   try {
@@ -61,6 +62,33 @@ const findAlbumById = async (req, res) => {
   }
 }
 
+const searchArtistByName = async (req, res) => {
+  const { name } = req.query
+
+  try {
+    const artist = await Artist.findOne({ name: { $regex: `^${name}$`, $options: 'i' } });
+    if (!artist) {
+      return res.status(404).json({ message: 'Artist is not exists' })
+    }
+
+    res.status(200).json({
+      artist_avatar: artist.artist_avatar,
+      artist_banner: artist.artist_banner,
+      artist_listeners: artist.artist_listeners,
+      artist_subscribers: artist.artist_subscribers,
+      artist_name: artist.name,
+      artist_bio: artist.bio,
+      artist_is_verified: artist.is_verified,
+      artist_albums: artist.albums,
+      artist_songs: artist.songs,
+      artist_id: artist._id
+    })
+  } catch (error) {
+    console.error('Server error:', error);
+    res.status(500).json({ error: error.message || 'Unknown server error' });
+  }
+}
+
 // const findPlaylistById = async (req, res) => {
 //   const { id } = req.params
   
@@ -71,4 +99,4 @@ const findAlbumById = async (req, res) => {
 //   }
 // }
 
-module.exports = { findArtistById, findUserById, findAlbumById }
+module.exports = { searchArtistById, searchUserById, searchAlbumById, searchArtistByName}

@@ -4,6 +4,7 @@ const multer = require('multer');
 const { Readable } = require("stream")
 const sharp = require('sharp');
 const mongoose = require('mongoose')
+const path = require('path');
 
 const User = require('../models/User/UserModel');
 const Song = require('../models/Artist/SongModel')
@@ -114,24 +115,46 @@ const uploadToCloudinaryArtistBanner = async (req, res, next) => {
             return res.status(400).json({ error: "No file uploaded" });
         }
 
-        const publicId = req.user.id; 
-
-        const user = await findUserById(publicId)
+        const publicId = req.user.id;
+        const user = await findUserById(publicId);
         const artist = await findArtistById(user.artist_profile);
-        
-        const allowedTypes = ['image/jpeg', 'image/png'];
-        if (!allowedTypes.includes(req.file.mimetype)) {
+
+        const allowedMimeTypes = ['image/jpeg', 'image/png'];
+        if (!allowedMimeTypes.includes(req.file.mimetype)) {
             return res.status(400).json({ error: 'Invalid file type' });
+        }
+
+        const ext = path.extname(req.file.originalname).toLowerCase();
+        const allowedExt = ['.jpg', '.jpeg', '.png'];
+        if (!allowedExt.includes(ext)) {
+            return res.status(400).json({ error: 'Invalid file extension' });
+        }
+
+        const metadata = await sharp(req.file.buffer).metadata();
+
+        const minWidth = 1200;
+        const minHeight = 400;
+        const maxWidth = 5000;
+        const maxHeight = 2000;
+
+        if (
+            metadata.width < minWidth || metadata.height < minHeight ||
+            metadata.width > maxWidth || metadata.height > maxHeight
+        ) {
+            return res.status(400).json({
+                error: `Image dimensions must be between ${minWidth}x${minHeight} and ${maxWidth}x${maxHeight} pixels`,
+            });
         }
         const imageBuffer = await sharp(req.file.buffer)
             .toFormat('png')
             .toBuffer();
+
         const result = await new Promise((resolve, reject) => {
             const uploadStream = cloudinary.uploader.upload_stream(
-                { 
+                {
                     folder: "artistBanners",
                     public_id: publicId,
-                    format: 'png'
+                    format: 'png',
                 },
                 (error, result) => {
                     if (error) reject(error);
@@ -141,12 +164,18 @@ const uploadToCloudinaryArtistBanner = async (req, res, next) => {
 
             Readable.from(imageBuffer).pipe(uploadStream);
         });
-    
+
         artist.artist_banner = result.secure_url;
         await artist.save();
+
+        res.status(200).json({
+            message: "Banner has been successfully updated",
+            bannerUrl: result.secure_url,
+        });
+
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ error: error.message || 'Unknown server error' });
     }
 };
 

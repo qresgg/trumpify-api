@@ -21,7 +21,6 @@ const getUserData = async (req, res) => {
 
     const user = await findUserById(userId);
     const artist = await Artist.findById(user.artist_profile);
-    console.log(artist)
     
     const likedCol = await findLikedColById(user.liked_collection);
     
@@ -51,7 +50,7 @@ const getUserData = async (req, res) => {
       artist: artist ? {
         artist_id: artist._id,
         artist_name: artist.name ,
-        artist_isVerified: artist.is_verified,
+        artist_is_verified: artist.is_verified,
         artist_avatar: artist.artist_avatar,
         artist_banner: artist.artist_banner,
       } : 'none'
@@ -86,7 +85,6 @@ const search = async (req, res) => {
         { user_name: { $regex: query, $options: 'i' } }
       ]
     });
-    console.log(`${artistResults}, ${songResults}, ${albumResults}, ${userResults}`)
     const allResults = [
       ...artistResults.map((result) => ({ type: 'Artist', ...result.toObject()})),
       ...songResults.map((result) => ({ type: 'Song', ...result.toObject()})),
@@ -233,7 +231,7 @@ const getLibrary = async (req, res) => {
 } 
 const getAlbumData = async (req, res) => {
   try {
-    const result = await Album.find().populate('songs');
+    const result = await Album.find().sort({ _id: -1 }).populate('songs');
     res.json(result);
   } catch (err) {
     console.error(err);
@@ -243,7 +241,7 @@ const getAlbumData = async (req, res) => {
 
 const getSongData = async (req, res) => {
   try {
-    const result = await Song.find({ type: { $ne: "Album" } }).populate('features');
+    const result = await Song.find({ type: { $ne: "Album" } }).sort({ _id: -1 }).populate('features');
     res.json(result);
   } catch (error) {
     console.log('Server error', error);

@@ -22,7 +22,7 @@ const changePassword = async (req, res) => {
         res.status(200).json({ message: 'Usedr data uspdated successfully' });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ error: error.message || 'Unknown server error' });
     }
 };
 
@@ -41,10 +41,10 @@ const changeEmail = async (req, res) => {
 
         user.email = newEmail;
         await user.save();
-        res.status(200).json({ message: 'Usedr data uspdated successfully' });
+        res.status(200).json({ message: 'User data uspdated successfully' });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ error: error.message || 'Unknown server error' });
     }
 }
 
@@ -61,7 +61,7 @@ const changeUserName = async (req, res) => {
         res.status(200).json({ message: 'User data updated successfully', username: user.user_name, avatarUrl: user.url_avatar  });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ error: error.message || 'Unknown server error' });
     }
 }
 
@@ -80,13 +80,13 @@ const uploadAvatar = async (req, res) => {
         }
 
         res.json({
-            message: "Avatar uploaded successfully",
+            message: "Avatar has been successfully uploaded",
             public_id: newPublicId,
             avatarUrl: newAvatarUrl,
         });
     } catch (error) {
         console.error("Error uploading avatar:", error);
-        res.status(500).json({ error: "Failed to upload avatar" });
+        res.status(500).json({ error: error.message || 'Unknown server error' });
     }
 };
 
@@ -96,7 +96,6 @@ const changeArtistName = async (req, res) => {
         const userId = req.user.id;
 
         const user = await findUserById(userId);
-        console.log(userId)
         const artist = await findArtistById(user.artist_profile);
 
         artist.name = artistName;
@@ -108,10 +107,10 @@ const changeArtistName = async (req, res) => {
             await album.save();
         }
 
-        res.status(200).json({ message: 'Artist name updated successfully' });
+        res.status(200).json({ message: "Artist's name has been successfully updated" });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ error: error.message || 'Unknown server error' });
     }
 };
 
@@ -125,10 +124,11 @@ const changeArtistBio = async (req, res) => {
 
         artist.bio = bio;
         await artist.save();
-        res.status(200).json({ message: 'Bio updated successfully' });
+
+        res.status(200).json({ message: "Bio updated successfully" });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ message: 'Server error' });
+        res.status(500).json({ error: error.message || 'Unknown server error' });
     }
 };
 
