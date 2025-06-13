@@ -9,6 +9,9 @@ const { findSongById } = require('../../services/global/findSong');
 const { findUserById } = require('../../services/global/findUser');
 const { findLikedColById } = require('../../services/global/findLikedCol');
 
+require('dotenv').config();
+const isDev = process.env.NODE_ENV !== 'production'
+
 const sendLikedSong = async (req, res) => {
     try {
         const { id } = req.params;
@@ -25,7 +28,7 @@ const sendLikedSong = async (req, res) => {
         })
     } catch (error) {
         console.error(error);
-        res.status(500).send({ error: 'An error occurred while processing your request.' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 

@@ -6,23 +6,23 @@ const Album = require('../models/Artist/AlbumModel');
 const { findUserById } = require('../services/global/findUser');
 const { findArtistById } = require('../services/global/findArtist');
 
+require('dotenv').config();
+const isDev = process.env.NODE_ENV !== 'production'
+
 const changePassword = async (req, res) => {
     try {
         const { password } = req.body;
 
         const userId = req.user.id;
-        const user = await User.findById( userId ); 
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        const user = findUserById( userId ); 
         const hashedPassword = await bcrypt.hash(password, 10); 
 
         user.password_hash = hashedPassword;
         await user.save();
-        res.status(200).json({ message: 'Usedr data uspdated successfully' });
+        res.status(200).json({ message: 'Password has been successfully updated' });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ error: error.message || 'Unknown server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 };
 
@@ -31,20 +31,17 @@ const changeEmail = async (req, res) => {
         const { email, newEmail } = req.body;
 
         const userId = req.user.id;
-        const user = await User.findById( userId );
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        const user = findUserById( userId );
         if (email !== user.email) {
             return res.status(400).json({ message: 'Emails do not match' });
         }
 
         user.email = newEmail;
         await user.save();
-        res.status(200).json({ message: 'User data uspdated successfully' });
+        res.status(200).json({ message: 'Email has been successfully updated' });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ error: error.message || 'Unknown server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
@@ -52,16 +49,13 @@ const changeUserName = async (req, res) => {
     try {
         const { userName } = req.body;
         const userId = req.user.id;
-        const user = await User.findById( userId );
-        if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-        }
+        const user = await findUserById( userId );
         user.user_name = userName;
         await user.save();
-        res.status(200).json({ message: 'User data updated successfully', username: user.user_name, avatarUrl: user.url_avatar  });
+        res.status(200).json({ message: 'Username has been successfully updated' });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ error: error.message || 'Unknown server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
@@ -86,7 +80,7 @@ const uploadAvatar = async (req, res) => {
         });
     } catch (error) {
         console.error("Error uploading avatar:", error);
-        res.status(500).json({ error: error.message || 'Unknown server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 };
 
@@ -110,7 +104,7 @@ const changeArtistName = async (req, res) => {
         res.status(200).json({ message: "Artist's name has been successfully updated" });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ error: error.message || 'Unknown server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 };
 
@@ -125,10 +119,10 @@ const changeArtistBio = async (req, res) => {
         artist.bio = bio;
         await artist.save();
 
-        res.status(200).json({ message: "Bio updated successfully" });
+        res.status(200).json({ message: "Bio has been successfully updated" });
     } catch (error) {
         console.error('Server error:', error);
-        res.status(500).json({ error: error.message || 'Unknown server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 };
 

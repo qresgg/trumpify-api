@@ -4,12 +4,16 @@ const Song = require('../../models/Artist/SongModel')
 const Album = require('../../models/Artist/AlbumModel')
 const LikedCol = require('../../models/User/LikedCollectionModel')
 const mongoose = require('mongoose');
+
 const { findUserById } = require('../../services/global/findUser');
 const { findArtistById } = require('../../services/global/findArtist');
 const { findLikedColById } = require('../../services/global/findLikedCol');
 const { findSongById } = require('../../services/global/findSong');
 const { findAlbumByIdWithSongs } = require('../../services/global/findAlbum');
 const { findArtistByIdNotStrict } = require('../../services/global/findArtist');
+
+require('dotenv').config();
+const isDev = process.env.NODE_ENV !== 'production'
 
 const getUserData = async (req, res) => {
   try {
@@ -57,7 +61,7 @@ const getUserData = async (req, res) => {
     });
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 };
 
@@ -98,8 +102,8 @@ const search = async (req, res) => {
 
 
     res.json(allResults);
-  } catch (err) {
-    res.status(500).json({ error: err.message });
+  } catch (error) {
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
@@ -134,7 +138,7 @@ const likeSong = async (req, res) => {
     session.endSession();
 
     console.error('Server error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
@@ -166,7 +170,7 @@ const unLikeSong = async (req, res) => {
     session.endSession();
 
     console.error('Server error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
@@ -199,7 +203,7 @@ const getLikedCollection = async (req, res) => {
     
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
@@ -220,32 +224,32 @@ const getLibrary = async (req, res) => {
       }
     }
 
-    res.json({
+    res.status(200).json({
       libraryItems
     });
 
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ message: 'Server error' });
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 } 
 const getAlbumData = async (req, res) => {
   try {
     const result = await Album.find().sort({ _id: -1 }).populate('songs');
-    res.json(result);
+    res.status(200).json(result);
   } catch (err) {
     console.error(err);
-    res.status(500).send('error');
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
 const getSongData = async (req, res) => {
   try {
     const result = await Song.find({ type: { $ne: "Album" } }).sort({ _id: -1 }).populate('features');
-    res.json(result);
+    res.status(200).json(result);
   } catch (error) {
     console.log('Server error', error);
-    res.status(500).json({ message: 'Server error '})
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 

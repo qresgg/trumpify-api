@@ -4,6 +4,9 @@ const Artist = require('../../models/Artist/ArtistModel');
 const Song = require('../../models/Artist/SongModel')
 const Album = require('../../models/Artist/AlbumModel');
 
+require('dotenv').config();
+const isDev = process.env.NODE_ENV !== 'production'
+
 const searchArtistById = async (req, res) => {
   const { id } = req.params;
 
@@ -25,8 +28,8 @@ const searchArtistById = async (req, res) => {
       artist_songs: artist.songs,
       artist_id: artist._id
     });
-  } catch(err) {
-    res.status(500).json({ error: err.message })
+  } catch(error) {
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
@@ -43,8 +46,8 @@ const searchUserById = async (req, res) => {
       user_avatar_url: user.url_avatar,
       user_playlists: user.playlists,
     })
-  } catch(err) {
-    res.status(500).json({ error: err.message })
+  } catch(error) {
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
@@ -58,7 +61,7 @@ const searchAlbumById = async (req, res) => {
     }
     res.send(album)
   } catch (error) {
-    res.status(500).json({ error: err.message })
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
@@ -85,7 +88,7 @@ const searchArtistByName = async (req, res) => {
     })
   } catch (error) {
     console.error('Server error:', error);
-    res.status(500).json({ error: error.message || 'Unknown server error' });
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 

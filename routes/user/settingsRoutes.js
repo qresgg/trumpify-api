@@ -1,6 +1,6 @@
 const express = require('express')
 const { authenticateToken } = require('../../middleware/authMiddleware');
-const { changePassword, changeEmail, changeUserName, uploadAvatar, changeArtistBio, changeArtistName } = require('../../middleware/settingsMiddleware');
+const { changePassword, changeEmail, changeUserName, changeArtistBio, changeArtistName } = require('../../middleware/settingsMiddleware');
 const { upload, uploadToCloudinaryAvatar, uploadToCloudinaryArtistAvatar, uploadToCloudinaryArtistBanner } = require('../../middleware/uploadMiddleware');
 
 const settingsRouter = express.Router();
@@ -8,7 +8,7 @@ const settingsRouter = express.Router();
 settingsRouter.put('/change-password', authenticateToken, changePassword)
 settingsRouter.put('/change-email', authenticateToken, changeEmail)
 settingsRouter.put('/change-userName', authenticateToken, changeUserName)
-settingsRouter.put("/change-avatar", authenticateToken, upload.single('avatar'), uploadToCloudinaryAvatar, uploadAvatar)
+settingsRouter.put("/change-avatar", authenticateToken, upload.single('avatar'), uploadToCloudinaryAvatar)
 
 settingsRouter.put('/change-artist-bio', authenticateToken, changeArtistBio)
 settingsRouter.put('/change-artist-name', authenticateToken, changeArtistName)

@@ -9,6 +9,9 @@ const { updateSongWithCover } = require('../../services/upload/updateSongByCover
 const { uploadSongToCloudinary } = require('../../services/upload/uploadSongToCloudinary')
 const { updateSongWithSong } = require('../../services/upload/updateSongBySong')
 
+require('dotenv').config();
+const isDev = process.env.NODE_ENV !== 'production'
+
 const createSongController = async (req, res) => {
     try {
         const { title, genre, duration, type, explicit, artists } = req.body;
@@ -54,7 +57,7 @@ const createSongController = async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating song:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 

@@ -9,6 +9,9 @@ const { findAlbumById } = require("../../services/global/findAlbum");
 const { verifyPassword } = require("../../services/global/password")
 const { createArtist } = require("../../services/artist/createArtist")
 
+require('dotenv').config();
+const isDev = process.env.NODE_ENV !== 'production'
+
 const registerArtist = async (req, res) => {
     try {
         const { artistName, bio, password } = req.body;
@@ -27,7 +30,7 @@ const registerArtist = async (req, res) => {
         res.status(201).json({ message: 'Artist profile created successfully', artist: newArtist });
     } catch (error) {
         console.error('Error creating artist profile:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
@@ -47,7 +50,7 @@ const getPopularSongs = async (req, res) => {
         res.json(songs);
     } catch (error) {
         console.error('Error getting popular songs:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
@@ -67,7 +70,7 @@ const popularMix = async (req, res) => {
         res.json(songs);
     } catch (error) {
         console.error('Error fetching popular mix:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
@@ -87,7 +90,7 @@ const singlesMix = async (req, res) => {
         res.json(singles);
     } catch (error) {
         console.error('Error fetching singles:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
@@ -107,7 +110,7 @@ const albumsMix = async (req, res) => {
         res.json(albums);
     } catch (error) {
         console.error('Error fetching albums:', error);
-        res.status(500).json({ error: 'Server error' });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 

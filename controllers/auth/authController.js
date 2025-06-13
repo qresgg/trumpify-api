@@ -11,6 +11,8 @@ const { createPassword, verifyPassword } = require("../../services/global/passwo
 const { createUser, createLikedCollection } = require("../../services/user/createUser")
 
 const { generateAccessToken, generateRefreshToken } = require('../../middleware/token')
+require('dotenv').config();
+const isDev = process.env.NODE_ENV !== 'production'
 
 const register = async (req, res) => {
   try {

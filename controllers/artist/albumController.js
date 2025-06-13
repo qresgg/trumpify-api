@@ -12,6 +12,8 @@ const { updateSongWithSong } = require("../../services/upload/updateSongBySong")
 const { uploadSongToCloudinary } = require("../../services/upload/uploadSongToCloudinary");
 const { updateAlbumWithCover } = require("../../services/upload/updateAlbumByCover");
 
+require('dotenv').config();
+const isDev = process.env.NODE_ENV !== 'production'
 
 const createAlbumController = async (req, res) => {
     try {
@@ -78,7 +80,7 @@ const createAlbumController = async (req, res) => {
         });
     } catch (error) {
         console.error('Error creating album:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
@@ -98,7 +100,7 @@ const likeAlbum = async (req, res) => {
         });
     } catch (error) {
         console.error('Error liking album:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
@@ -118,7 +120,7 @@ const unlikeAlbum = async (req, res) => {
         });
     } catch (error) {
         console.error('Error liking album:', error);
-        res.status(500).json({ error: error.message });
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 

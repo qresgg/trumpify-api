@@ -5,30 +5,29 @@ const Song = require('../../models/Artist/SongModel');
 const Album = require('../../models/Artist/AlbumModel')
 const LikedCol = require('../../models/User/LikedCollectionModel')
 
+const findUserById = require('../../services/global/findUser')
+const findAlbumById = require('../../services/global/findAlbum')
+const findLikedColById = require('../../services/global/findLikedCol')
+
+require('dotenv').config();
+const isDev = process.env.NODE_ENV !== 'production'
+
 const getLikedSongs = async (req, res) => {
     try {
         const { id } = req.params;
         const userId = req.user.id;
     
-        const album = await Album.findById( id );
-        if (!album) {
-            return res.status(404).json({ message: `Album not found` });
-        } 
-        const user = await User.findById( userId); 
-        if (!user) {
-            return res.status(404).json({ message: `User not found`})
-        }
-        const likedCol = await LikedCol.findById(user.liked_collection);
-        if (!likedCol){ 
-            return res.status(404).json({ message: 'LikedCollection not found'})
-        }
+        const album = await findAlbumById( id );
+        const user = await findUserById( userId); 
+        const likedCol = await findLikedColById(user.liked_collection);
+
         likedSongsInAlbum = album.songs.filter(songId => likedCol.songs.some(likedSongId => likedSongId.equals(songId)));
 
         res.status(200).json({
             likedSongsInAlbum
         })
     } catch (error) {
-        console.error(error);
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
