@@ -53,7 +53,7 @@ const createAlbumController = async (req, res) => {
                     return res.status(400).json({ error: 'Invalid audio file type' });
                 }
                 try {
-                    const newSong = await createSongInAlbum(songData, features, artist, coverResult.secure_url);
+                    const newSong = await createSongInAlbum(songData, features, artist, coverResult.secure_url, date);
 
                     const audioBuffer = audioFile.buffer;
                     const audioResult = await uploadSongToCloudinary(audioBuffer, newSong._id);
