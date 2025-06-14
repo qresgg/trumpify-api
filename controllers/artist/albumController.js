@@ -17,14 +17,14 @@ const isDev = process.env.NODE_ENV !== 'production'
 
 const createAlbumController = async (req, res) => {
     try {
-        const { albumTitle, recordLabel, language, genre, type } = req.body
+        const { albumTitle, recordLabel, language, genre, type, privacy, date } = req.body
         const userId = req.user.id;
 
         const user = await findUserById(userId);
         const artist = await findArtistById(user.artist_profile);
 
         const newAlbum = await createAlbum(
-            { albumTitle, recordLabel, language, genre, type },
+            { albumTitle, recordLabel, language, genre, type, privacy, date },
             artist
         );
 

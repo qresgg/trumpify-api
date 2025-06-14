@@ -5,6 +5,8 @@ const createAlbum = async (albumData, artist) => {
         title: albumData.albumTitle,
         artist: artist._id,
         record_label: albumData.recordLabel,
+        privacy: albumData.privacy,
+        created_at: albumData.date,
         artist_name: artist.name,
         genre: albumData.genre,
         type: albumData.type,

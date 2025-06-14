@@ -24,10 +24,9 @@ const register = async (req, res) => {
     const hashedPassword = await createPassword(password);
 
     const newUser = await createUser( username, email, hashedPassword);  
-
     await createLikedCollection( newUser );
 
-    res.status(201).json({ message: 'user registered successfully' });
+    res.status(200).json({ message: 'Sign up has been successfull' });
   } catch (error) {
     console.error('Error during registration:', error.message, error.stack);
     res.status(500).json({ message: 'an error occurred', error: error.message });
@@ -57,7 +56,7 @@ const login = async (req, res) => {
     req.session.userId = user._id;
     req.session.userName = user.user_name;
     
-    res.json({ access_token })
+    res.status(200).json({ message: 'Login has been successfull', access_token: access_token })
   } catch (error) {
     console.error('Error during login:', error);
     res.status(500).json({ message: 'an error occurred' });
