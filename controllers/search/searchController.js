@@ -3,6 +3,7 @@ const User = require('../../models/User/UserModel');
 const Artist = require('../../models/Artist/ArtistModel');
 const Song = require('../../models/Artist/SongModel')
 const Album = require('../../models/Artist/AlbumModel');
+const { findArtistById } = require('../../services/global/findArtist');
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'
@@ -11,10 +12,7 @@ const searchArtistById = async (req, res) => {
   const { id } = req.params;
 
   try{
-    const artist = await Artist.findById( id );
-    if (!artist) {
-      return res.status(404).json({ message: 'Artist is not found' });
-    }
+    const artist = await findArtistById(id);
 
     res.json({
       artist_avatar: artist.artist_avatar,
