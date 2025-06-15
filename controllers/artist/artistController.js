@@ -46,8 +46,11 @@ const getPopularSongs = async (req, res) => {
             .sort({ playback: -1, created_at: -1})
             .limit(10);
 
-        if (!songs.length) return res.status(400).json({ message: 'No songs found for this artist'});
-        res.status(200).json(songs);
+        if (!songs.length){
+            return res.status(200).json({ message: 'No songs found for this artist'})   
+        } else {
+            return res.status(200).json(songs);
+        }
     } catch (error) {
         console.error('Error getting popular songs:', error);
         res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
@@ -62,28 +65,26 @@ const getArtistReleases = async (req, res) => {
         if (!artist) return res.status(404).json({ message: 'Artist not found' });
 
         const singles = await Song.find({ artist: artist._id, type: { $ne: 'Album' } })
+            .populate('features')
             .lean()
             .exec();
 
         const albums = await Album.find({ artist: artist._id })
+            .populate({
+                path: 'songs',
+                populate: { path: 'features' }
+            })
             .lean()
             .exec();
 
-        const albumSongsArrays = await Promise.all(
-            albums.map(async (album) => {
-                const songIds = album.songs?.slice(0, 2) || [];
-                const songs = await Song.find({ _id: { $in: songIds } })
-                    .lean()
-                    .exec();
-                return songs.map(song => ({
-                    ...song,
-                    albumTitle: album.title,
-                    type: 'Album'
-                }));
-            })
-        );
-
-        const albumSongs = albumSongsArrays.flat();
+        const albumSongs = albums.flatMap(album => {
+            const songs = (album.songs || []).slice(0, 2);
+            return songs.map(song => ({
+                ...song,
+                albumTitle: album.title,
+                type: 'Album'
+            }));
+        });
 
         const albumsWithType = albums.map(album => ({ ...album, type: 'album' }));
 
@@ -96,10 +97,10 @@ const getArtistReleases = async (req, res) => {
         allReleases.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
 
         if (!allReleases.length) {
-            return res.status(400).json({ message: 'No releases found for this artist' });
+            return res.status(200).json({ message: 'No releases found for this artist' });
+        } else {
+            return res.status(200).json(allReleases);
         }
-
-        res.status(200).json(allReleases);
     } catch (error) {
         console.error('Error getting artist releases:', error);
         res.status(500).json({
@@ -107,6 +108,7 @@ const getArtistReleases = async (req, res) => {
         });
     }
 };
+
 
 
 

@@ -2,10 +2,10 @@ const Artist = require('../../models/Artist/ArtistModel')
 
 const updateArtistWithAvatar = async (artistId, avatarUrl) => {
     const artist = await Artist.findById(artistId);
-    if (!user) {
+    if (!artist) {
         throw new Error('User not found');
     }
-    artist.avatar = avatarUrl;
+    artist.artist_avatar = avatarUrl;
     await artist.save();
 };
 
