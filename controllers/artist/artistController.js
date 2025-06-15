@@ -47,14 +47,72 @@ const getPopularSongs = async (req, res) => {
             .limit(10);
 
         if (!songs.length) return res.status(400).json({ message: 'No songs found for this artist'});
-        res.json(songs);
+        res.status(200).json(songs);
     } catch (error) {
         console.error('Error getting popular songs:', error);
         res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
 }
 
-const popularMix = async (req, res) => {
+const getArtistReleases = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const artist = await findArtistById(id);
+        if (!artist) return res.status(404).json({ message: 'Artist not found' });
+
+        const singles = await Song.find({ artist: artist._id, type: { $ne: 'Album' } })
+            .lean()
+            .exec();
+
+        const albums = await Album.find({ artist: artist._id })
+            .lean()
+            .exec();
+
+        const albumSongsArrays = await Promise.all(
+            albums.map(async (album) => {
+                const songIds = album.songs?.slice(0, 2) || [];
+                const songs = await Song.find({ _id: { $in: songIds } })
+                    .lean()
+                    .exec();
+                return songs.map(song => ({
+                    ...song,
+                    albumTitle: album.title,
+                    type: 'Album'
+                }));
+            })
+        );
+
+        const albumSongs = albumSongsArrays.flat();
+
+        const albumsWithType = albums.map(album => ({ ...album, type: 'album' }));
+
+        const allReleases = [
+            ...albumsWithType,
+            ...singles.map(single => ({ ...single, type: 'single' })),
+            ...albumSongs
+        ];
+
+        allReleases.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+
+        if (!allReleases.length) {
+            return res.status(400).json({ message: 'No releases found for this artist' });
+        }
+
+        res.status(200).json(allReleases);
+    } catch (error) {
+        console.error('Error getting artist releases:', error);
+        res.status(500).json({
+            error: isDev ? error.message : "Something went wrong. Please try again later."
+        });
+    }
+};
+
+
+
+
+
+const getPopularMix = async (req, res) => {
     try {
         const { id } = req.params;
         if (!id) return res.status(400).json({ message: 'Artist ID is required' });
@@ -74,7 +132,7 @@ const popularMix = async (req, res) => {
     }
 }
 
-const singlesMix = async (req, res) => {
+const getSinglesMix = async (req, res) => {
     try {
         const { id } = req.params;
         if (!id) return res.status(400).json({ message: 'Artist ID is required' });
@@ -94,7 +152,7 @@ const singlesMix = async (req, res) => {
     }
 }
 
-const albumsMix = async (req, res) => {
+const getAlbumsMix = async (req, res) => {
     try {
         const { id } = req.params;
         if (!id) return res.status(400).json({ message: 'Artist ID is required' });
@@ -114,4 +172,4 @@ const albumsMix = async (req, res) => {
     }
 }
 
-module.exports = { registerArtist, getPopularSongs };
+module.exports = { registerArtist, getPopularSongs, getArtistReleases };
