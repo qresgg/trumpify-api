@@ -75,32 +75,35 @@ const logout = async (req, res) => {
 }
 
 const token = async (req, res) => {
-  try{
-    const refresh_token = req.cookies.refreshToken;
-  if (!refresh_token) {
-    return res.status(401).send('no refresh token');
-  }
-  const decoded = jwt.decode(refresh_token);
-  if (!decoded || !decoded.exp || Date.now() >= decoded.exp * 1000) {
-    return res.status(403).send('Expired refresh token');
-  }
-  
-  const user = await User.findOne({ refresh_token });
-  if(!user) {
-    return res.status(403).send('invalid refresh token')
+  const refreshToken = req.cookies?.refreshToken;
+  if (!refreshToken) {
+    return res.status(401).json({ message: 'No refresh token provided' });
   }
 
-  jwt.verify(refresh_token, SECRETKEY_REFRESH, (err, decoded) => {
-    if (err) {
-      return res.status(403).send('invalid refresh token');
+  try {
+    const decoded = jwt.verify(refreshToken, SECRETKEY_REFRESH);
+    const user = await User.findOne({ 
+      _id: decoded.id, 
+      refresh_token: refreshToken 
+    });
+
+    if (!user) {
+      res.clearCookie('refreshToken');
+      return res.status(403).json({ message: 'Invalid refresh token' });
     }
+
     const access_token = generateAccessToken(user);
-    res.json({access_token})
-  })
-  } catch (error) {
-    return res.status(500).json({ error: 'internal server error'})
+    return res.json({ access_token });
+
+  } catch (err) {
+    res.clearCookie('refreshToken');
+    return res.status(403).json({ 
+      message: err.name === 'TokenExpiredError' 
+        ? 'Refresh token expired' 
+        : 'Invalid refresh token'
+    });
   }
-}
+};
 
 const verifyToken = async (req, res) => {
   try {
@@ -115,43 +118,23 @@ const verifyToken = async (req, res) => {
     }
 
     const token = tokenParts[1];
-    let decodedToken;
-
+    
     try {
-      decodedToken = jwt.verify(token, SECRETKEY_ACCESS);
+      const decodedToken = jwt.verify(token, SECRETKEY_ACCESS);
+      const user = await User.findById(decodedToken.id);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      return res.status(200).json({ message: 'verified' });
     } catch (error) {
       if (error.name === 'TokenExpiredError') {
-        const refreshToken = req.cookies.refreshToken; 
-        if (!refreshToken) {
-          return res.status(403).json({ message: 'Refresh token is missing' });
-        }
-        try {
-          const decodedRefreshToken = jwt.verify(refreshToken, SECRETKEY_REFRESH);
-
-          const user = await User.findById(decodedRefreshToken._id)
-          if (!user) {
-            return res.status(404).json({ message: 'User not found' });
-          }
-          const new_access_token = generateAccessToken(user);
-          res.setHeader('Authorization', `Bearer ${new_access_token}`);
-          req.headers.authorization = `Bearer ${new_access_token}`;
-          return next();
-        } catch (refreshError) {
-          return res.status(403).json({ message: 'Invalid refresh token' });
-        }
+        return res.status(401).json({ message: 'Token expired' });
       }
-      return res.status(401).json({ message: 'Invalid or expired access token' });
+      return res.status(401).json({ message: 'Invalid token' });
     }
-
-    const userId = decodedToken.id;
-    const user = await User.findOne({ _id: userId });
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-    res.status(200).json({ message: 'verified'})
   } catch (error) {
-    console.error('Error authenticating token:', error);
-    res.status(500).json({ message: 'Server error' });
+    console.error('Error verifying token:', error);
+    return res.status(500).json({ message: 'Server error' });
   }
 };
 

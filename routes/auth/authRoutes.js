@@ -7,7 +7,7 @@ const authRouter = express.Router();
 authRouter.post('/register', register)
 authRouter.post('/login', login)
 authRouter.post('/logout', logout)
-authRouter.post('/refresh', token)
-authRouter.post('/verify', authenticateToken, (req, res) => res.status(200).json({ message: 'access grant'}))
+authRouter.post('/token', token)
+authRouter.post('/verify', authenticateToken, verifyToken)
 
-module.exports = authRouter;
+module.exports = authRouter;    

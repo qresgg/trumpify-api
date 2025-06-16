@@ -8,62 +8,73 @@ const isDev = process.env.NODE_ENV !== 'production'
 const authenticateToken = async (req, res, next) => {
   try {
     const authHeader = req.headers.authorization;
+    
+    // Перевірка наявності заголовка
     if (!authHeader) {
       return res.status(401).json({ message: 'Authorization header is missing' });
     }
 
+    // Перевірка формату токена
     const tokenParts = authHeader.split(' ');
     if (tokenParts[0] !== 'Bearer' || !tokenParts[1]) {
       return res.status(400).json({ message: 'Authorization format is invalid' });
     }
 
     const token = tokenParts[1];
-    let decodedToken;
 
     try {
-      decodedToken = decodeAccessToken(token);
-    } catch (error) {
-      if (error.name === 'TokenExpiredError') {
-        const refreshToken = req.cookies.refreshToken; 
-        if (!refreshToken) {
-          return res.status(403).json({ message: 'Refresh token is missing' });
-        }
-        try {
-          const decodedRefreshToken = decodeRefreshToken(refreshToken);
-          const userId = decodedRefreshToken.id;
-          const user = await findUserById(userId)
+      // Спроба валідації access token
+      const decodedToken = decodeAccessToken(token);
+      const user = await User.findById(decodedToken.id);
+      
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
 
-          const new_access_token = generateAccessToken(user);
-          res.setHeader('Authorization', `Bearer ${new_access_token}`);
-          req.headers.authorization = `Bearer ${new_access_token}`;
+      req.user = { id: user._id };
+      return next();
+      
+    } catch (error) {
+      // Обробка простроченого токена
+      if (error.name === 'TokenExpiredError') {
+        const refreshToken = req.cookies.refreshToken;
+        
+        if (!refreshToken) {
+          return res.status(401).json({ message: 'Refresh token is missing' }); // Змінимо на 401
+        }
+
+        try {
+          // Валідація refresh token
+          const decodedRefreshToken = decodeRefreshToken(refreshToken);
+          const user = await User.findById(decodedRefreshToken.id);
           
-          if (!req.user) {
-            req.user = {};
+          if (!user || user.refresh_token !== refreshToken) {
+            return res.status(403).json({ message: 'Invalid refresh token' });
           }
-          req.user.id = userId;
+
+          // Генерація нового токена
+          const newAccessToken = generateAccessToken(user);
+          
+          // Встановлюємо новий токен у заголовки
+          res.set('New-Access-Token', newAccessToken);
+          req.headers.authorization = `Bearer ${newAccessToken}`;
+          req.user = { id: user._id };
           
           return next();
+          
         } catch (refreshError) {
           return res.status(403).json({ message: 'Invalid refresh token' });
         }
       }
-      return res.status(401).json({ message: 'Invalid or expired access token' });
+      
+      return res.status(401).json({ message: 'Invalid token' });
     }
-
-    const userId = decodedToken.id;
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'User not found' });
-    }
-
-    if (!req.user) {
-      req.user = {};
-    }
-    req.user.id = userId;
-    next();
+    
   } catch (error) {
-    console.error('Error authenticating token:', error);
-    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
+    console.error('Authentication error:', error);
+    return res.status(500).json({ 
+      error: isDev ? error.message : 'Internal server error' 
+    });
   }
 };
 
