@@ -33,8 +33,8 @@ app.use(session({
   saveUninitialized: true,
   cookie: {
     secure: NODE_ENV === 'production',
-    httpOnly: true, 
-    sameSite: 'strict',
+    httpOnly: true,
+    sameSite: NODE_ENV === 'production' ? 'none' : 'lax',
   },
 }));
 

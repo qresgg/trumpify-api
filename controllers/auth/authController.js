@@ -48,8 +48,8 @@ const login = async (req, res) => {
 
     res.cookie('refreshToken', refresh_token, { 
       httpOnly: true, 
-      secure: NODE_ENV === 'production',
-      sameSite: 'strict',
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000
     });
 
