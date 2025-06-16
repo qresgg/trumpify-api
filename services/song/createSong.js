@@ -5,6 +5,7 @@ const createSong = async (songData, artist) => {
         title: songData.title,
         artist: artist._id,
         duration: songData.duration,
+        created_at: songData.date,
         genre: songData.genre,
         type: songData.type,
         is_explicit: songData.explicit,

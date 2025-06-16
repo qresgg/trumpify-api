@@ -14,7 +14,7 @@ const isDev = process.env.NODE_ENV !== 'production'
 
 const createSongController = async (req, res) => {
     try {
-        const { title, genre, duration, type, explicit, artists } = req.body;
+        const { title, genre, duration, type, explicit, artists, date } = req.body;
         const userId = req.user.id;
 
         const user = await findUserById(userId);

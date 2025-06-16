@@ -235,17 +235,17 @@ const getLibrary = async (req, res) => {
 } 
 const getAlbumData = async (req, res) => {
   try {
-    const result = await Album.find().sort({ _id: -1 }).populate('songs');
+    const result = await Album.find().sort({ created_at: -1 }).populate('songs');
     res.status(200).json(result);
-  } catch (err) {
-    console.error(err);
+  } catch (error) {
+    console.error(error);
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
 const getSongData = async (req, res) => {
   try {
-    const result = await Song.find({ type: { $ne: "Album" } }).sort({ _id: -1 }).populate('features');
+    const result = await Song.find({ type: { $ne: "Album" } }).sort({ created_at: -1 }).populate('features');
     res.status(200).json(result);
   } catch (error) {
     console.log('Server error', error);
