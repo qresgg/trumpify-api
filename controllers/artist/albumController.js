@@ -29,14 +29,14 @@ const createAlbumController = async (req, res) => {
         const user = await findUserById(userId);
         const artist = await findArtistById(user.artist_profile);
 
+        const coverFile = req.files.find(file => file.fieldname === 'cover');
+        if (!coverFile) throw new Error('Cover image is required');
+
         const newAlbum = await createAlbum(
             { albumTitle, recordLabel, language, genre, type, privacy, date },
             artist,
             session
         );
-
-        const coverFile = req.files.find(file => file.fieldname === 'cover');
-        if (!coverFile) throw new Error('Cover image is required');
 
         const imageBuffer = await processCoverImage(coverFile.buffer);
         const coverResult = await uploadCoverAlbumToCloudinary(imageBuffer, newAlbum._id);
@@ -62,7 +62,9 @@ const createAlbumController = async (req, res) => {
                 const newSong = await createSongInAlbum(songData, features, artist, coverResult.secure_url, date, session);
                 const audioBuffer = audioFile.buffer;
                 const audioResult = await uploadSongToCloudinary(audioBuffer, newSong._id);
-                uploadedCloudinaryPublicIds.push(audioResult.public_id);
+                if (audioResult?.public_id) {
+                    uploadedCloudinaryPublicIds.push(audioResult.public_id);
+                }
 
                 await updateSongWithSong(newSong._id, audioResult.secure_url, session);
 
