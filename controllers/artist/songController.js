@@ -22,7 +22,7 @@ const createSongController = async (req, res) => {
         const features = parseFeatures(artists);
 
         const newSong = await createSong(
-            { title, genre, duration, type, explicit, features },
+            { title, genre, duration, type, explicit, features, date },
             artist
         );
 

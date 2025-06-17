@@ -43,7 +43,6 @@ const createAlbumController = async (req, res) => {
         uploadedCloudinaryPublicIds.push(coverResult.public_id);
 
         await updateAlbumWithCover(newAlbum._id, coverResult.secure_url);
-
         const tracks = [];
 
         if (req.body.songs && Array.isArray(req.body.songs)) {

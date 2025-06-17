@@ -9,7 +9,7 @@ const { findUserById } = require('../../services/global/findUser');
 const { findArtistById } = require('../../services/global/findArtist');
 const { findLikedColById } = require('../../services/global/findLikedCol');
 const { findSongById } = require('../../services/global/findSong');
-const { findAlbumByIdWithSongs } = require('../../services/global/findAlbum');
+const { findAlbumByIdWithSongs, findAlbumById } = require('../../services/global/findAlbum');
 const { findArtistByIdNotStrict } = require('../../services/global/findArtist');
 
 require('dotenv').config();
@@ -253,6 +253,21 @@ const getSongData = async (req, res) => {
   }
 }
 
+const getAlbumById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    console.log(id)
+    if (!id) return res.status(400).json({ message: 'Album ID is required'});
+
+    const album = await findAlbumById(id);
+    
+    res.status(200).json(album);
+  } catch (error) {
+    console.log('Server error', error);
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
+  }
+}
+
 module.exports = { 
   getUserData, 
   likeSong, 
@@ -261,5 +276,6 @@ module.exports = {
   getAlbumData, 
   getLikedCollection, 
   getLibrary,
-  getSongData
+  getSongData,
+  getAlbumById
 };
