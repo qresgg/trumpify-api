@@ -1,3 +1,5 @@
+const mongoose = require('mongoose')
+
 const { findUserById } = require("../../services/global/findUser");
 const { findArtistById } = require("../../services/global/findArtist");
 const { findAlbumById } = require("../../services/global/findAlbum");
@@ -16,6 +18,10 @@ require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'
 
 const createAlbumController = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+    const uploadedCloudinaryPublicIds = [];
+
     try {
         const { albumTitle, recordLabel, language, genre, type, privacy, date } = req.body
         const userId = req.user.id;
@@ -25,12 +31,18 @@ const createAlbumController = async (req, res) => {
 
         const newAlbum = await createAlbum(
             { albumTitle, recordLabel, language, genre, type, privacy, date },
-            artist
+            artist,
+            session
         );
 
-        const imageBuffer = await processCoverImage(req.files.find(file => file.fieldname === 'cover').buffer);
+        const coverFile = req.files.find(file => file.fieldname === 'cover');
+        if (!coverFile) throw new Error('Cover image is required');
+
+        const imageBuffer = await processCoverImage(coverFile.buffer);
         const coverResult = await uploadCoverAlbumToCloudinary(imageBuffer, newAlbum._id);
-        const updatedSongCover = await updateAlbumWithCover(newAlbum._id, coverResult.secure_url);
+        uploadedCloudinaryPublicIds.push(coverResult.public_id);
+
+        await updateAlbumWithCover(newAlbum._id, coverResult.secure_url);
 
         const tracks = [];
 
@@ -39,46 +51,52 @@ const createAlbumController = async (req, res) => {
                 const songDataRaw = req.body.songs[i];
                 const songData = JSON.parse(songDataRaw);
 
-                if (!songData.title) {
-                    return res.status(400).json({ error: 'Song must have a title' });
-                }
+                if (!songData.title) throw new Error('Song must have a title');
                 const features = parseFeatures(songData.artists);
 
                 const audioFile = req.files.find(file => file.fieldname === `songs[${i}][audio]`);
-                if (!audioFile) {
-                    return res.status(400).json({ error: 'No audio file uploaded' });
-                }
+                if (!audioFile) throw new Error('No audio file uploaded');
+
                 const allowedTypesSong = ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp3'];
-                if (!allowedTypesSong.includes(audioFile.mimetype)) { 
-                    return res.status(400).json({ error: 'Invalid audio file type' });
-                }
-                try {
-                    const newSong = await createSongInAlbum(songData, features, artist, coverResult.secure_url, date);
+                if (!allowedTypesSong.includes(audioFile.mimetype)) throw new Error('Invalid audio file type');
 
-                    const audioBuffer = audioFile.buffer;
-                    const audioResult = await uploadSongToCloudinary(audioBuffer, newSong._id);
-                    const updatedSongAudio = await updateSongWithSong(newSong._id, audioResult.secure_url);
+                const newSong = await createSongInAlbum(songData, features, artist, coverResult.secure_url, date, session);
+                const audioBuffer = audioFile.buffer;
+                const audioResult = await uploadSongToCloudinary(audioBuffer, newSong._id);
+                uploadedCloudinaryPublicIds.push(audioResult.public_id);
 
-                    newSong.song_file = audioResult.secure_url;
-                    tracks.push(newSong._id);
+                await updateSongWithSong(newSong._id, audioResult.secure_url, session);
 
-                    await newSong.save();
-                } catch (error) {
-                    console.error('Error creating or saving song:', error);
-                    return res.status(500).json({ error: 'Failed to create and save song' });
-                }
+                newSong.song_file = audioResult.secure_url;
+                await newSong.save({ session });
+
+                tracks.push(newSong._id);
             }
         } else {
-            res.status(400).json({ error: 'Invalid songs data' });
+            throw new Error('Invalid songs data');
         }
         newAlbum.songs = tracks;
-        await newAlbum.save();
-        
+        await newAlbum.save({ session });
+
+        await session.commitTransaction();
+        session.endSession();
+
         res.status(201).json({
             success: true,
             message: 'Album created successfully'
         });
     } catch (error) {
+        await session.abortTransaction();
+        session.endSession();
+
+        for (const publicId of uploadedCloudinaryPublicIds) {
+            try {
+                await cloudinary.uploader.destroy(publicId, { resource_type: "auto" });
+            } catch (err) {
+                console.error(`Failed to delete Cloudinary asset ${publicId}:`, err.message);
+            }
+        }
+
         console.error('Error creating album:', error);
         res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
     }
