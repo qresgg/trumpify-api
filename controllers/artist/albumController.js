@@ -1,4 +1,5 @@
 const mongoose = require('mongoose')
+const cloudinary = require('../../middleware/uploadMiddleware');
 
 const { findUserById } = require("../../services/global/findUser");
 const { findArtistById } = require("../../services/global/findArtist");
@@ -18,90 +19,124 @@ require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'
 
 const createAlbumController = async (req, res) => {
-    const session = await mongoose.startSession();
-    session.startTransaction();
-    const uploadedCloudinaryPublicIds = [];
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-    try {
-        const { albumTitle, recordLabel, language, genre, type, privacy, date } = req.body
-        const userId = req.user.id;
+  const uploadedCloudinaryAssets = [];
 
-        const user = await findUserById(userId);
-        const artist = await findArtistById(user.artist_profile);
+  try {
+    console.log("🔄 Album creation started");
 
-        const coverFile = req.files.find(file => file.fieldname === 'cover');
-        if (!coverFile) throw new Error('Cover image is required');
+    const { albumTitle, recordLabel, language, genre, type, privacy, date } = req.body;
+    const userId = req.user.id;
 
-        const newAlbum = await createAlbum(
-            { albumTitle, recordLabel, language, genre, type, privacy, date },
-            artist,
-            session
-        );
+    const user = await findUserById(userId);
+    console.log("👤 User found:", user._id);
+    const artist = await findArtistById(user.artist_profile);
+    console.log("🎨 Artist found:", artist._id);
 
-        const imageBuffer = await processCoverImage(coverFile.buffer);
-        const coverResult = await uploadCoverAlbumToCloudinary(imageBuffer, newAlbum._id);
-        uploadedCloudinaryPublicIds.push(coverResult.public_id);
+    const coverFile = req.files.find(file => file.fieldname === 'cover');
+    if (!coverFile) throw new Error('Cover image is required');
+    console.log("🖼️ Cover file found");
 
-        await updateAlbumWithCover(newAlbum._id, coverResult.secure_url);
-        const tracks = [];
+    const newAlbum = await createAlbum(
+      { albumTitle, recordLabel, language, genre, type, privacy, date },
+      artist,
+      session
+    );
+    console.log("📀 New album created:", newAlbum._id);
 
-        if (req.body.songs && Array.isArray(req.body.songs)) {
-            for (let i = 0; i < req.body.songs.length; i++) {
-                const songDataRaw = req.body.songs[i];
-                const songData = JSON.parse(songDataRaw);
+    const imageBuffer = await processCoverImage(coverFile.buffer);
+    const coverResult = await uploadCoverAlbumToCloudinary(imageBuffer, newAlbum._id);
+    if (!coverResult?.public_id) throw new Error("Failed to upload album cover to Cloudinary");
 
-                if (!songData.title) throw new Error('Song must have a title');
-                const features = parseFeatures(songData.artists);
+    uploadedCloudinaryAssets.push({ public_id: coverResult.public_id, type: "image" });
+    console.log("✅ Cover uploaded to Cloudinary:", coverResult.secure_url);
 
-                const audioFile = req.files.find(file => file.fieldname === `songs[${i}][audio]`);
-                if (!audioFile) throw new Error('No audio file uploaded');
+    await updateAlbumWithCover(newAlbum._id, coverResult.secure_url);
+    console.log("📝 Album updated with cover");
 
-                const allowedTypesSong = ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp3'];
-                if (!allowedTypesSong.includes(audioFile.mimetype)) throw new Error('Invalid audio file type');
+    const tracks = [];
 
-                const newSong = await createSongInAlbum(songData, features, artist, coverResult.secure_url, date, session);
-                const audioBuffer = audioFile.buffer;
-                const audioResult = await uploadSongToCloudinary(audioBuffer, newSong._id);
-                if (audioResult?.public_id) {
-                    uploadedCloudinaryPublicIds.push(audioResult.public_id);
-                }
+    if (req.body.songs && Array.isArray(req.body.songs)) {
+      console.log(`🎵 ${req.body.songs.length} songs detected`);
 
-                await updateSongWithSong(newSong._id, audioResult.secure_url, session);
+      for (let i = 0; i < req.body.songs.length; i++) {
+        console.log(`➡️ Processing song #${i + 1}`);
 
-                newSong.song_file = audioResult.secure_url;
-                await newSong.save({ session });
+        const songDataRaw = req.body.songs[i];
+        const songData = JSON.parse(songDataRaw);
 
-                tracks.push(newSong._id);
-            }
-        } else {
-            throw new Error('Invalid songs data');
-        }
-        newAlbum.songs = tracks;
-        await newAlbum.save({ session });
+        if (!songData.title) throw new Error(`Song ${i + 1} is missing title`);
+        const features = parseFeatures(songData.artists);
 
-        await session.commitTransaction();
-        session.endSession();
+        const audioFile = req.files.find(file => file.fieldname === `songs[${i}][audio]`);
+        if (!audioFile) throw new Error(`Audio file missing for song ${i + 1}`);
 
-        res.status(201).json({
-            success: true,
-            message: 'Album created successfully'
-        });
-    } catch (error) {
-        await session.abortTransaction();
-        session.endSession();
-
-        for (const publicId of uploadedCloudinaryPublicIds) {
-            try {
-                await cloudinary.uploader.destroy(publicId, { resource_type: "auto" });
-            } catch (err) {
-                console.error(`Failed to delete Cloudinary asset ${publicId}:`, err.message);
-            }
+        const allowedTypesSong = ['audio/mpeg', 'audio/ogg', 'audio/wav', 'audio/mp3'];
+        if (!allowedTypesSong.includes(audioFile.mimetype)) {
+          throw new Error(`Invalid audio type for song ${i + 1}: ${audioFile.mimetype}`);
         }
 
-        console.error('Error creating album:', error);
-        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
+        const newSong = await createSongInAlbum(songData, features, artist, coverResult.secure_url, date, session);
+        console.log(`🎶 Created DB record for song: ${newSong._id}`);
+
+        const audioBuffer = audioFile.buffer;
+        const audioResult = await uploadSongToCloudinary(audioBuffer, newSong._id);
+        if (!audioResult?.public_id) throw new Error(`Failed to upload audio for song ${i + 1}`);
+
+        uploadedCloudinaryAssets.push({ public_id: audioResult.public_id, type: "video" });
+        console.log(`⬆️ Song uploaded to Cloudinary: ${audioResult.secure_url}`);
+
+        await updateSongWithSong(newSong._id, audioResult.secure_url, session);
+
+        newSong.song_file = audioResult.secure_url;
+        await newSong.save({ session });
+
+        tracks.push(newSong._id);
+      }
+    } else {
+      throw new Error('Invalid songs data');
     }
-}
+
+    newAlbum.songs = tracks;
+    await newAlbum.save({ session });
+    console.log("📥 Album updated with song references");
+
+    await session.commitTransaction();
+    session.endSession();
+    console.log("✅ Transaction committed");
+
+    res.status(201).json({
+      success: true,
+      message: 'Album created successfully'
+    });
+
+  } catch (error) {
+    console.error("❌ Error occurred:", error.message);
+    await session.abortTransaction();
+    session.endSession();
+    console.log("⛔️ Transaction aborted");
+
+    for (const asset of uploadedCloudinaryAssets) {
+      try {
+        const result = await cloudinary.uploader.destroy(asset.public_id, {
+          resource_type: asset.type
+        });
+        console.log(`🗑️ Cloudinary asset deleted: ${asset.public_id}, result: ${result.result}`);
+      } catch (err) {
+        console.error(`❗️ Failed to delete Cloudinary asset ${asset.public_id}:`, err.message);
+      }
+    }
+
+    res.status(500).json({
+      success: false,
+      error: isDev ? error.message : 'Something went wrong. Please try again later.'
+    });
+  }
+};
+
+
 
 const likeAlbum = async (req, res) => {
     try{ 

@@ -21,12 +21,12 @@ const { updateArtistWithAvatar } = require('../services/upload/updateArtistByAva
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'
 
-const { CLOUD_NAME, CLOUD_API_KEY, CLOUD_API_SECRET } = process.env;
+const { CLOUD_NAME, CLOUD_API_KEY, CLOUD_API_SECRET, NODE_ENV, CLOUD_NAME_DEV, CLOUD_API_KEY_DEV, CLOUD_API_SECRET_DEV } = process.env;
 
 cloudinary.config({
-    cloud_name: CLOUD_NAME,
-    api_key: CLOUD_API_KEY,
-    api_secret: CLOUD_API_SECRET
+    cloud_name: NODE_ENV === 'development' ? CLOUD_NAME_DEV : CLOUD_NAME,
+    api_key: NODE_ENV === 'development' ? CLOUD_API_KEY_DEV : CLOUD_API_KEY,
+    api_secret: NODE_ENV === 'development' ? CLOUD_API_SECRET_DEV : CLOUD_API_SECRET
 });
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
@@ -158,4 +158,5 @@ const uploadToCloudinaryArtistBanner = async (req, res, next) => {
 };
 
 
+module.exports = cloudinary;
 module.exports = { upload, uploadToCloudinaryAvatar, uploadToCloudinaryArtistAvatar, uploadToCloudinaryArtistBanner };

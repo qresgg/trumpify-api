@@ -1,12 +1,16 @@
 const Song = require('../../models/Artist/SongModel');
 
-const updateSongWithCover = async (songId, coverUrl) => {
-    const song = await Song.findById(songId);
+const updateSongWithCover = async (songId, coverUrl, session) => {
+    const song = await Song.findById(songId).session(session);
     if (!song) {
         throw new Error('Song not found');
     }
     song.song_cover = coverUrl;
-    await song.save();
+    if (session) {
+        await song.save({ session });
+    } else {
+        await song.save();
+    }
     return song;
 };
 

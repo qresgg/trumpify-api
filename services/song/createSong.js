@@ -1,6 +1,6 @@
 const Song = require('../../models/Artist/SongModel');
 
-const createSong = async (songData, artist) => {
+const createSong = async (songData, artist, session) => {
     const newSong = new Song({
         title: songData.title,
         artist: artist._id,
@@ -12,10 +12,10 @@ const createSong = async (songData, artist) => {
         features: songData.features,
     });
 
-    await newSong.save();
+    await newSong.save({ session });
 
     artist.songs.push(newSong);
-    await artist.save();
+    await artist.save({ session });
 
     return newSong;
 };

@@ -5,6 +5,8 @@ const Album = require('../../models/Artist/AlbumModel')
 const LikedCol = require('../../models/User/LikedCollectionModel')
 const mongoose = require('mongoose');
 
+const { buildUserData, buildArtistData, buildUserForeignData } = require('../../utils/responseTemplates')
+
 const { findUserById } = require('../../services/global/findUser');
 const { findArtistById } = require('../../services/global/findArtist');
 const { findLikedColById } = require('../../services/global/findLikedCol');
@@ -41,23 +43,11 @@ const getUserData = async (req, res) => {
         console.error(`Error finding album with ID ${itemId}:`, error);
       }
     }
+    const userData = buildUserData(user, likedCol, first20LikedSongs, libraryItems);
+    const artistData = buildArtistData(artist);
     res.json({
-      user: {
-        user_avatar_url: user.url_avatar,
-        user_id: user._id,
-        user_name: user.user_name,
-        user_email: user.email,
-        user_likedSongsCount: likedCol.songs.length,
-        user_likedSongsList: first20LikedSongs,
-        user_library: libraryItems,
-      },
-      artist: artist ? {
-        artist_id: artist._id,
-        artist_name: artist.name ,
-        artist_is_verified: artist.is_verified,
-        artist_avatar: artist.artist_avatar,
-        artist_banner: artist.artist_banner,
-      } : 'none'
+      user: userData,
+      artist: artistData
     });
   } catch (error) {
     console.error('Server error:', error);
@@ -83,24 +73,24 @@ const search = async (req, res) => {
       $or: [
         { title: { $regex: query, $options: 'i'}}
       ]
-    });
+    }).populate('songs');
     const userResults = await User.find({
       $or: [
         { user_name: { $regex: query, $options: 'i' } }
       ]
     });
     const allResults = [
-      ...artistResults.map((result) => ({ type: 'Artist', ...result.toObject()})),
+      ...artistResults.map((result) => (buildArtistData(result))),
       ...songResults.map((result) => ({ type: 'Song', ...result.toObject()})),
       ...albumResults.map((result) => ({ type: 'Album', ...result.toObject()})),
-      ...userResults.map((result) => ({ type: 'User', ...result.toObject()}))
+      ...userResults.map((result) => (buildUserData(result)))
     ];
 
     if (!query) {
       return res.json([...artistResults, ...songResults, ...albumResults, ...userResults]);
     }
 
-
+    console.log(allResults)
     res.json(allResults);
   } catch (error) {
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
@@ -256,12 +246,28 @@ const getSongData = async (req, res) => {
 const getAlbumById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id)
     if (!id) return res.status(400).json({ message: 'Album ID is required'});
 
-    const album = await findAlbumById(id);
+    const album = await Album.findById(id).populate('songs');
+    if (!album) return res.tatus(400).json({ message: "Album is not exists"})
     
     res.status(200).json(album);
+  } catch (error) {
+    console.log('Server error', error);
+    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
+  }
+}
+
+const getUserById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const userId = req.user.id.toString();
+
+    if (!id) return res.status(400).json({ message: 'User ID is required'});
+
+    const user = await findUserById(id);
+    
+    res.status(200).json(id === userId ? buildUserData(user) : buildUserForeignData(user));
   } catch (error) {
     console.log('Server error', error);
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
@@ -277,5 +283,7 @@ module.exports = {
   getLikedCollection, 
   getLibrary,
   getSongData,
-  getAlbumById
+
+  getAlbumById,
+  getUserById
 };

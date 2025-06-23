@@ -1,6 +1,6 @@
 const Album = require('../../models/Artist/AlbumModel');
 
-const createAlbum = async (albumData, artist) => {
+const createAlbum = async (albumData, artist, session) => {
     const newAlbum = new Album({
         title: albumData.albumTitle,
         artist: artist._id,
@@ -13,10 +13,10 @@ const createAlbum = async (albumData, artist) => {
         language: albumData.language
     });
 
-    await newAlbum.save();
+    await newAlbum.save({ session });
 
     artist.albums.push(newAlbum);
-    await artist.save();
+    await artist.save({ session });
 
     return newAlbum;
 };
