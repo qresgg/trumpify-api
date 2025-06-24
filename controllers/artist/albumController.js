@@ -53,7 +53,7 @@ const createAlbumController = async (req, res) => {
     uploadedCloudinaryAssets.push({ public_id: coverResult.public_id, type: "image" });
     console.log("✅ Cover uploaded to Cloudinary:", coverResult.secure_url);
 
-    await updateAlbumWithCover(newAlbum._id, coverResult.secure_url);
+    await updateAlbumWithCover(newAlbum._id, coverResult.secure_url, session);
     console.log("📝 Album updated with cover");
 
     const tracks = [];
@@ -135,8 +135,6 @@ const createAlbumController = async (req, res) => {
     });
   }
 };
-
-
 
 const likeAlbum = async (req, res) => {
     try{ 

@@ -30,6 +30,7 @@ const buildArtistData = (artist) => {
     artist_is_verified: artist.is_verified,
     artist_avatar: artist.artist_avatar,
     artist_banner: artist.artist_banner,
+    artist_bio: artist.bio
   };
 }
 

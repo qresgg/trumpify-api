@@ -1,12 +1,12 @@
 const Album = require('../../models/Artist/AlbumModel');
 
-const updateAlbumWithCover = async (albumId, coverUrl) => {
-    const album = await Album.findById(albumId);
+const updateAlbumWithCover = async (albumId, coverUrl, session) => {
+    const album = await Album.findById(albumId).session(session);
     if (!album) {
-        throw new Error('Song not found');
+        throw new Error('Album not found');
     }
     album.cover = coverUrl;
-    await album.save();
+    await album.save({ session });
     return album;
 };
 
