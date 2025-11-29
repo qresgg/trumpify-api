@@ -1,11 +1,19 @@
-const LikedCol = require('../../models/User/LikedCollectionModel');
+const LikedCol = require('../../models/likedCollection.model');
 
 const findLikedColById = async (likedColId) => {
-    const likedCol = await LikedCol.findById(likedColId)
+    const likedCol = await LikedCol.findById(likedColId);
     if (!likedCol) {
-        throw new Error('User not found');
+        throw new Error('LikedCollection not found');
     }
     return likedCol;
 };
 
-module.exports = { findLikedColById };
+const findLikedColByUserId = async (userId) => {
+    const likedCol = await LikedCol.findOne({ user_id: userId });
+    if (!likedCol) {
+        throw new Error('LikedCollection not found');
+    }
+    return likedCol;
+}
+
+module.exports = { findLikedColById, findLikedColByUserId };

@@ -3,12 +3,12 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const { SECRETKEY_ACCESS, SECRETKEY_REFRESH, NODE_ENV } = process.env;
 
-const Album = require('../../models/Artist/AlbumModel');
-const User = require('../../models/User/UserModel');
-const LikedCol = require('../../models/User/LikedCollectionModel')
+const Album = require('../../models/album.model');
+const User = require('../../models/user.model');
+const LikedCol = require('../../models/likedCollection.model')
 const { findUserByEmail, findUserByEmailExists } = require("../../services/global/findUser")
 const { createPassword, verifyPassword } = require("../../services/global/password")
-const { createUser, createLikedCollection } = require("../../services/user/createUser")
+const { createUser, createLikedCollection } = require("../../services/create/createUser")
 
 const { generateAccessToken, generateRefreshToken } = require('../../middleware/token')
 require('dotenv').config();

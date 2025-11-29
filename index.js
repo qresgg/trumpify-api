@@ -5,20 +5,20 @@ const cors = require('cors');
 const cookieParser = require('cookie-parser')
 const { connectDB } = require('./database/mongodb')
 
-const authRoutes = require('./routes/auth/authRoutes');
-const apiRoutes = require('./routes/api/apiRoutes');
-const artistRoutes = require('./routes/artist/artistRoutes');
-const settingsRoutes = require('./routes/user/settingsRoutes');
-const actionRoutes = require('./routes/user/userActionsRoutes');
-const findRoutes = require('./routes/find/findRoutes');
+const authRoutes = require('./routes/auth.route');
+const apiRoutes = require('./routes/api.route');
+const artistRoutes = require('./routes/artist.route');
+const settingsRoutes = require('./routes/settings.route');
+const actionRoutes = require('./routes/userActions.route');
+const searchRouter = require('./routes/search.route');
+const userRouter = require('./routes/user.route');
 
 require('dotenv').config();
+connectDB();
 
 const PORT = process.env.PORT || 4000;
 const { SECRETKEY_COOKIES, NODE_ENV, PROD_CLIENT_URL, DEV_CLIENT_URL } = process.env;
 const app = express();
-
-connectDB()
 
 app.use(cors({
   origin: NODE_ENV === 'production' ? PROD_CLIENT_URL  : DEV_CLIENT_URL,
@@ -45,7 +45,9 @@ app.use('/api', apiRoutes);
 app.use('/artist', artistRoutes);
 app.use('/settings', settingsRoutes);
 app.use('/actions', actionRoutes);
-app.use('/find', findRoutes);
+app.use('/search', searchRouter);
+
+app.use('/user', userRouter);
 
 const start = (port) => {
   try {

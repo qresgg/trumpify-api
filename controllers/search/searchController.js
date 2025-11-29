@@ -1,10 +1,10 @@
 const mongoose = require('mongoose')
-const User = require('../../models/User/UserModel');
-const Artist = require('../../models/Artist/ArtistModel');
-const Song = require('../../models/Artist/SongModel')
-const Album = require('../../models/Artist/AlbumModel');
+const User = require('../../models/user.model');
+const Artist = require('../../models/artist.model');
+const Song = require('../../models/song.model')
+const Album = require('../../models/album.model');
 const { findArtistById } = require('../../services/global/findArtist');
-const { buildUserData, buildArtistData } = require('../../utils/responseTemplates');
+const { buildUserData, buildArtistForeignData } = require('../../utils/responseTemplates');
 const { findUserById } = require('../../services/global/findUser');
 
 require('dotenv').config();
@@ -15,7 +15,7 @@ const searchArtistById = async (req, res) => {
 
   try{
     const artist = await findArtistById(id);
-    const artistData = buildArtistData(artist);
+    const artistData = buildArtistForeignData(artist);
 
     res.status(200).json(artistData);
   } catch(error) {
@@ -62,6 +62,7 @@ const searchArtistByName = async (req, res) => {
     }
 
     res.status(200).json({
+      _id: artist._id,
       artist_avatar: artist.artist_avatar,
       artist_banner: artist.artist_banner,
       artist_listeners: artist.artist_listeners,
@@ -69,9 +70,6 @@ const searchArtistByName = async (req, res) => {
       artist_name: artist.name,
       artist_bio: artist.bio,
       artist_is_verified: artist.is_verified,
-      artist_albums: artist.albums,
-      artist_songs: artist.songs,
-      artist_id: artist._id
     })
   } catch (error) {
     console.error('Server error:', error);

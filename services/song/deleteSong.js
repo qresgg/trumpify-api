@@ -1,4 +1,4 @@
-const Song = require('../../models/Artist/SongModel');
+const Song = require('../../models/song.model');
 
 const deleteSong = async (songId) => {
     await Song.deleteOne({ _id: songId });

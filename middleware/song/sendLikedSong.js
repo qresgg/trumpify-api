@@ -1,9 +1,9 @@
 const mongoose = require('mongoose');
-const Artist = require('../../models/Artist/ArtistModel');
-const User = require('../../models/User/UserModel');
-const Song = require('../../models/Artist/SongModel');
-const Album = require('../../models/Artist/AlbumModel')
-const LikedCol = require('../../models/User/LikedCollectionModel')
+const Artist = require('../../models/artist.model');
+const User = require('../../models/user.model');
+const Song = require('../../models/song.model');
+const Album = require('../../models/album.model')
+const LikedCol = require('../../models/likedCollection.model')
 
 const { findSongById } = require('../../services/global/findSong');
 const { findUserById } = require('../../services/global/findUser');

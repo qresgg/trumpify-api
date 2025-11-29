@@ -1,4 +1,4 @@
-const Song = require('../../models/Artist/SongModel');
+const Song = require('../../models/song.model');
 
 const updateSongWithCover = async (songId, coverUrl, session) => {
     const song = await Song.findById(songId).session(session);

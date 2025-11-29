@@ -1,4 +1,4 @@
-const Album = require('../../models/Artist/AlbumModel');
+const Album = require('../../models/album.model');
 
 const updateAlbumWithCover = async (albumId, coverUrl, session) => {
     const album = await Album.findById(albumId).session(session);

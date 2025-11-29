@@ -1,4 +1,4 @@
-const Album = require('../../models/Artist/AlbumModel');
+const Album = require('../../models/album.model');
 
 const findAlbumById = async (albumId) => {
     const album = await Album.findById(albumId);

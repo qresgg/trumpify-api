@@ -1,4 +1,4 @@
-const Song = require('../../models/Artist/SongModel');
+const Song = require('../../models/song.model');
 
 const findSongById = async (songId) => {
     const song = await Song.findById(songId);
