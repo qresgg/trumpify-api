@@ -21,7 +21,7 @@ const { SECRETKEY_COOKIES, NODE_ENV, PROD_CLIENT_URL, DEV_CLIENT_URL } = process
 const app = express();
 
 app.use(cors({
-  origin: NODE_ENV === 'production' ? PROD_CLIENT_URL  : DEV_CLIENT_URL,
+  origin: ["http://localhost:3000", "http://10.0.0.83:3000", "http://10.0.0.236:3000", "http://192.168.137.1:3000", "http://172.24.160.1:3000"],
   credentials: true,
 }));
 app.use(cookieParser())
@@ -51,7 +51,7 @@ app.use('/user', userRouter);
 
 const start = (port) => {
   try {
-    app.listen(port, () => {
+    app.listen(port, '0.0.0.0', () => {
       console.log(`server is working on ${port}`);
     });
   } catch (error) {

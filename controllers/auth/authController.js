@@ -38,7 +38,7 @@ const login = async (req, res) => {
     const { email, password } = req.body;
 
     const user = await findUserByEmail(email);
-    await verifyPassword(password, user.password_hash);
+    await verifyPassword(password, user.password_hash, res);
     
     const access_token = generateAccessToken(user);
     const refresh_token = generateRefreshToken(user);
@@ -58,8 +58,8 @@ const login = async (req, res) => {
     
     res.status(200).json({ message: 'Login has been successfull', access_token: access_token })
   } catch (error) {
-    console.error('Error during login:', error);
-    res.status(500).json({ message: 'an error occurred' });
+      console.error('Search error:', error);
+      res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
