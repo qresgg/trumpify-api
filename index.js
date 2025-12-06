@@ -21,7 +21,7 @@ const { SECRETKEY_COOKIES, NODE_ENV, PROD_CLIENT_URL, DEV_CLIENT_URL } = process
 const app = express();
 
 app.use(cors({
-  origin: ["http://localhost:3000", "http://10.0.0.83:3000", "http://10.0.0.236:3000", "http://192.168.137.1:3000", "http://172.24.160.1:3000"], PROD_CLIENT_URL,
+  origin: PROD_CLIENT_URL,
   credentials: true,
 }));
 app.use(cookieParser())
