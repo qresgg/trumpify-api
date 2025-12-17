@@ -1,6 +1,6 @@
 const bcrypt = require('bcrypt');
 
-const verifyPassword = async (takenPass, userPass, res) => {
+const verifyPassword = async (takenPass, userPass) => {
     const result = await bcrypt.compare(takenPass, userPass);
     if (!result) {
         throw Error('incorrect password');
