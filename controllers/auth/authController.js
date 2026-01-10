@@ -5,7 +5,7 @@ const { SECRETKEY_ACCESS, SECRETKEY_REFRESH, NODE_ENV } = process.env;
 
 const Album = require('../../models/album.model');
 const User = require('../../models/user.model');
-const LikedCol = require('../../models/likedCollection.model')
+const LikedCol = require('../../models/libraryCollection.model')
 const { findUserByEmail, findUserByEmailExists } = require("../../services/global/findUser")
 const { createPassword, verifyPassword } = require("../../services/global/password")
 const { createUser, createLikedCollection } = require("../../services/create/createUser")

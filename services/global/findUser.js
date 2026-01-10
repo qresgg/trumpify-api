@@ -23,4 +23,12 @@ const findUserByEmailExists = async (userEmail) => {
     }
 }
 
-module.exports = { findUserById, findUserByEmail, findUserByEmailExists };
+const findUserByLibrary = async (query) => {
+    const user = await User.findOne({ library_collection: query });
+    if (!user) {
+        throw new Error('User not found');
+    }
+    return user;
+}
+
+module.exports = { findUserById, findUserByEmail, findUserByEmailExists, findUserByLibrary };

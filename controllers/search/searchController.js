@@ -28,26 +28,12 @@ const searchUserById = async (req, res) => {
 
   try {
     const user = await findUserById(id);
-    res.json({
+    res.status(200).json({
       user_name: user.user_name,
       user_avatar_url: user.url_avatar,
       user_playlists: user.playlists,
     })
   } catch(error) {
-    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
-  }
-}
-
-const searchAlbumById = async (req, res) => {
-  const { id } = req.params
-
-  try {
-    const album = await Album.findById(id).populate('songs')
-    if (!album) {
-      res.status(404).json({ message: 'Album is not found'})
-    }
-    res.send(album)
-  } catch (error) {
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
@@ -87,4 +73,4 @@ const searchArtistByName = async (req, res) => {
 //   }
 // }
 
-module.exports = { searchArtistById, searchUserById, searchAlbumById, searchArtistByName}
+module.exports = { searchArtistById, searchUserById, searchArtistByName}

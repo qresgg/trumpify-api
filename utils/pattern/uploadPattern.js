@@ -5,6 +5,7 @@ const { uploadAvatarToCloudinary } = require('../../services/upload/uploadAvatar
 const { updateUserWithAvatar } = require('../../services/upload/updateUserByAvatar');
 
 const uploadPattern = async ({ file, userId }) => {
+    console.log(file)
     const user = await findUserById(userId);
     await allowedTypesFunc(file.mimetype);
     const imageBuffer = await processCoverImage(file.buffer);

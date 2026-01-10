@@ -3,14 +3,14 @@ const Artist = require('../models/artist.model');
 const Song = require('../models/song.model')
 const Album = require('../models/album.model')
 const Ref = require('../models/ref.model');
-const LikedCol = require('../models/likedCollection.model')
+const LibraryCollection = require('../models/libraryCollection.model')
 const mongoose = require('mongoose');
 
 const { buildUserData, buildArtistData, buildUserForeignData, buildLikedCollection } = require('../utils/responseTemplates')
 
 const { findUserById } = require('../services/global/findUser');
 const { findArtistById } = require('../services/global/findArtist');
-const { findLikedColById } = require('../services/global/findLikedCol');
+const { findLikedColById } = require('../services/global/findLibraryCol');
 const { findSongById } = require('../services/global/findSong');
 const { findAlbumByIdWithSongs, findAlbumById } = require('../services/global/findAlbum');
 const { findArtistByIdNotStrict } = require('../services/global/findArtist');

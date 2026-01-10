@@ -33,8 +33,8 @@ const updateRegionArtist = async (req, res) => {
     const { region } = req.body;
 
     const userId = req.user.id;
-    const user = findUserById(userId);
-    const artist = findArtistById(user.artist_profile);
+    const user = await findUserById(userId);
+    const artist = await findArtistById(user.artist_profile);
 
     artist.region = region;
     await artist.save();

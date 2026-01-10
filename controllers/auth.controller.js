@@ -1,28 +1,37 @@
 
 const { isDev } = require('../utils/isDev');
 const {findUserByEmailExists, findUserByEmail, findUserById} = require("../services/global/findUser");
-const {createLikedCollection} = require("../services/create/createUser");
-const {verifyPassword} = require("../services/global/password");
+const {createLibraryCollection, createUser} = require("../services/create/createUser");
+const {verifyPassword, createPassword} = require("../services/global/password");
 const {generateAccessToken, generateRefreshToken} = require("../middleware/token");
 const {RT_pattern} = require("../utils/pattern/token.pattern");
 const jwt = require('jsonwebtoken');
 const {User} = require("../models/user.model");
+const mongoose = require("mongoose");
 
 const register = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
+
     try{
         const { username, email, password } = req.body;
         if (!username || !email || !password || !password.length) {
             return res.status(400).json({ message: "All fields are required" });
         }
         await findUserByEmailExists(email);
-        const hashedPassword = await findUserByEmailExists(email);
-        const newUser = await findUserByEmailExists(hashedPassword);
-        await createLikedCollection(newUser);
+        const hashedPassword = await createPassword(password);
+        const newUser = await createUser(username, email, hashedPassword, session);
+        await createLibraryCollection(newUser, session);
 
+        await session.commitTransaction();
+        await session.endSession();
         res.status(200).json({ message: "Sing up has been successfully" });
     } catch (error){
-        console.error('Server error:', error);
-        res.status(500).json({ error: isDev ? error.message : "Error during registration" });
+        await session.abortTransaction();
+        await session.endSession();
+
+        console.error('Server error:', error.message);
+        res.status(500).json({ error: error.message });
     }
 }
 
@@ -45,8 +54,8 @@ const login = async (req, res) => {
 
         res.status(200).json({ message: 'Logged in successfully', access_token: accessToken });
     } catch (error) {
-        console.error('Server error:', error);
-        res.status(500).json({ error: isDev ? error.message : "Error during login" });
+        console.error('Server error:', error.message);
+        res.status(500).json({ error: error.message });
     }
 }
 
@@ -58,7 +67,7 @@ const logout = async (req, res) => {
             .json({ message: "Logged out successfully" });
     } catch (error) {
         console.error('Search error:', error);
-        res.status(500).json({ error: isDev ? error.message : "Error during logout" });
+        res.status(500).json({ error: error });
     }
 }
 

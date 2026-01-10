@@ -9,9 +9,29 @@ const { findAlbumById } = require("../services/global/findAlbum");
 const { verifyPassword } = require("../services/global/password")
 
 const { createArtist } = require("../services/create/createArtist")
+const {buildArtistData} = require("../utils/responseTemplates");
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'
+
+const getArtistById = async (req, res) => {
+    try{
+        const { id } = req.params;
+        const user_id = req.user.id;
+        if (!id) return res.status(400).json({ message: 'Artist ID is required'});
+
+        const artist = await findArtistById(id);
+        console.log('found', artist)
+        const user = await findUserById(user_id);
+        const origin_artist = await findArtistByName(user.artist_profile);
+        const edit_permission = String(user._id) === String(origin_artist);
+
+        res.status(200).json(buildArtistData(artist, edit_permission));
+    } catch (err){
+        console.log('Server error', err);
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
+    }
+}
 
 const registerArtist = async (req, res) => {
     try {
@@ -180,4 +200,4 @@ const getAlbumsMix = async (req, res) => {
     }
 }
 
-module.exports = { registerArtist, getPopularSongs, getArtistReleases };
+module.exports = { registerArtist, getPopularSongs, getArtistReleases, getArtistById };

@@ -1,13 +1,8 @@
 const mongoose = require('mongoose');
-const Artist = require('../../models/artist.model');
-const User = require('../../models/user.model');
-const Song = require('../../models/song.model');
-const Album = require('../../models/album.model')
-const LikedCol = require('../../models/likedCollection.model')
 
 const findUserById = require('../../services/global/findUser')
 const findAlbumById = require('../../services/global/findAlbum')
-const findLikedColById = require('../../services/global/findLikedCol')
+const findLibraryCollectionById = require('../../services/global/findLibraryCol')
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'
@@ -19,9 +14,9 @@ const getLikedSongs = async (req, res) => {
     
         const album = await findAlbumById( id );
         const user = await findUserById( userId); 
-        const likedCol = await findLikedColById(user.liked_collection);
+        const likedCol = await findLibraryCollectionById(user.liked_collection);
 
-        likedSongsInAlbum = album.songs.filter(songId => likedCol.songs.some(likedSongId => likedSongId.equals(songId)));
+        const likedSongsInAlbum = album.songs.filter(songId => likedCol.songs.some(likedSongId => likedSongId.equals(songId)));
 
         res.status(200).json({
             likedSongsInAlbum

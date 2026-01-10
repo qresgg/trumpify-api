@@ -1,9 +1,9 @@
 const Song = require('../../models/song.model');
 
-const findSongById = async (songId) => {
-    const song = await Song.findById(songId);
+const findSongById = async (id) => {
+    const song = await Song.findById(id);
     if (!song) {
-        throw new Error('User not found');
+        throw new Error('Song not found');
     }
     return song;
 };

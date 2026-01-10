@@ -1,13 +1,12 @@
-const buildUserData = (user, likedCol = {}, first20LikedSongs = [], libraryItems = []) => {
+const buildUserData = (user, count) => {
   return {
-    _id: user._id,
-    definition: user.definition,
-    user_avatar_url: user.url_avatar,
-    user_name: user.user_name,
-    user_email: user.email,
-    user_liked_songs_count: likedCol?.songs?.length || 0,
-    user_liked_songs_id: likedCol._id,
-    user_library: libraryItems,
+        _id: user._id,
+        definition: user.definition,
+        user_avatar_url: user.url_avatar,
+        user_name: user.user_name,
+        user_email: user.email,
+        user_library: user.library_collection,
+        user_likedSongsCount: count
   };
 }
 
@@ -59,11 +58,13 @@ const buildSongData = (song) => {
 
 }
 
-const buildLikedCollection = (collection, songs) => {
+const buildLikedCollection = (collection, songs, name) => {
   return {
     _id: collection._id,
+      type: "Collection",
     title: 'Liked Songs',
     user_id: collection._id,
+      user_name: name,
     privacy_type: collection.privacy_type,
     songs: songs
   }

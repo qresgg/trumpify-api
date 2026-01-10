@@ -3,11 +3,11 @@ const Artist = require('../../models/artist.model');
 const User = require('../../models/user.model');
 const Song = require('../../models/song.model');
 const Album = require('../../models/album.model')
-const LikedCol = require('../../models/likedCollection.model')
+const LikedCol = require('../../models/libraryCollection.model')
 
 const { findSongById } = require('../../services/global/findSong');
 const { findUserById } = require('../../services/global/findUser');
-const { findLikedColById } = require('../../services/global/findLikedCol');
+const { findLikedColById } = require('../../services/global/findLibraryCol');
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'
@@ -19,7 +19,7 @@ const sendLikedSong = async (req, res) => {
     
         const song = await findSongById( id );
         const user = await findUserById( userId);
-        const likedCol = await findLikedColById(user.liked_collection);
+        const likedCol = await findLikedColById(user.library_collection);
         
         const likedSong = likedCol.songs.some(likedSongId => likedSongId.equals(song._id));
 

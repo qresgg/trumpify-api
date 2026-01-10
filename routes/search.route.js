@@ -1,13 +1,16 @@
 const express = require('express')
 const { authenticateToken } = require('../middleware/auth.middleware');
-const { searchArtistById, searchUserById, searchAlbumById, searchArtistByName } = require('../controllers/search/searchController')
-const { search } = require('../controllers/search.controller')
+const { searchArtistById, searchUserById, searchArtistByName } = require('../controllers/search/searchController')
+const {
+    search,
+    searchAlbumById
+} = require('../controllers/search.controller')
 
 const searchRouter = express.Router();
 
-searchRouter.get('/Artist/:id', authenticateToken, searchArtistById)
-searchRouter.get('/User/:id', authenticateToken, searchUserById)
-searchRouter.get('/Album/:id', authenticateToken, searchAlbumById)
+searchRouter.get('/artistById/:id', authenticateToken, searchArtistById)
+searchRouter.get('/userById/:id', authenticateToken, searchUserById)
+searchRouter.get('/albumById/:id', authenticateToken, searchAlbumById)
 
 searchRouter.get('/Artist', authenticateToken, searchArtistByName)
 

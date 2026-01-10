@@ -1,17 +1,19 @@
 const mongoose = require('mongoose');
 const Artist = require('../models/artist.model');
 const Song = require('../models/song.model');
+const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
 const { createPassword } = require('../services/global/password');
 
 const { findAlbumById } = require('../services/global/findAlbum');
-const { findUserById } = require('../services/global/findUser');
-const { findLikedColById, findLikedColByUserId } = require('../services/global/findLikedCol');
+const { findUserById, findUserByLibrary} = require('../services/global/findUser');
+const { findLibraryCollectionById, findLibraryCollectionByUserId } = require('../services/global/findLibraryCol');
 const { findAlbumByIdWithSongs } = require('../services/global/findAlbum'); 
 const { findSongById } = require('../services/global/findSong');
 const { buildUserData, buildUserForeignData, buildArtistData, buildLikedCollection } = require('../utils/responseTemplates');
 const { uploadPattern } = require("../utils/pattern/uploadPattern");
 const { isDev } = require('../utils/isDev');
+const {findArtistByIdNotStrict} = require("../services/global/findArtist");
 
 const getUserMy = async (req, res) => {
   try {
@@ -22,102 +24,88 @@ const getUserMy = async (req, res) => {
     const userId = req.user.id;
 
     const user = await findUserById(userId);
-    const artist = await Artist.findById(user.artist_profile);
-    
-    const likedCol = await findLikedColById(user.liked_collection);
-    
-    const first20LikedSongs = likedCol ? likedCol.songs.slice(0, 20) : [];
-    const first20libraryItems = user.library ? user.library.slice(0, 20) : [];
-    const libraryItems = [];
-    for (const itemId of first20libraryItems) {
-      try {
-        const album = await findAlbumByIdWithSongs(itemId);
-        if (album) {
-          libraryItems.push(album);
-        }
-      } catch (error) {
-        console.error(`Error finding album with ID ${itemId}:`, error);
-      }
-    }
-    const userData = buildUserData(user, likedCol, first20LikedSongs, libraryItems);
+    const artist = await findArtistByIdNotStrict(userId);
+    const library = await findLibraryCollectionById(user.library_collection);
+
+    const userData = buildUserData(user, library.liked.songs.length);
     const artistData = buildArtistData(artist);
-    res.json({
-      user: userData,
-      artist: artistData
+    res.status(201).json({
+        user: userData,
+        artist: artistData
     });
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 };
-const getLikedCollectionMy = async (req, res) => {
-  try {
-    const id = req.user.id;
-    const likedColl = await findLikedColByUserId(id);
-
-    const likedSongs = [];
-    const limit = 25;
-
-    for (const likedSong of likedColl.songs) {
-      if (likedSong.length >= limit) break;
-      const song = await Song.findById( likedSong );
-      if (!song) {
-        return res.status(404).json({ message: 'Song not found'})
-      }
-      likedSongs.push(song);
-    }
-
-    res.status(200).json(buildLikedCollection(likedColl, likedSongs));
-    
-  } catch (error) {
-    console.error('Server error:', error);
-    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
-  }
-}
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    const user_id = req.user.id;
     if (!id) return res.status(400).json({ message: 'User ID is required'});
 
     const user = await findUserById(id);
-    const originUser = await findUserById(userId);
-    const editPermission = String(user._id) === String(originUser._id);
+    const origin_user = await findUserById(user_id);
+    const edit_permission = String(user._id) === String(origin_user._id);
 
-    res.status(200).json(buildUserForeignData(user, editPermission));
+    res.status(200).json(buildUserForeignData(user, edit_permission));
   } catch (error) {
     console.log('Server error', error);
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
+const getLibraryCollectionMy = async (req, res) => {
+    try {
+        const id = req.user.id;
+        const liked_coll = await findLibraryCollectionByUserId(id);
+
+        const liked_songs = [];
+        const limit = 25;
+
+        for (const liked_song of liked_coll.songs) {
+            if (liked_song.length >= limit) break;
+            const song = await Song.findById( liked_song );
+            if (!song) {
+                return res.status(404).json({ message: 'Song not found'})
+            }
+            liked_songs.push(song);
+        }
+
+        res.status(200).json(buildLikedCollection(liked_coll, liked_songs));
+    } catch (error) {
+        console.error('Server error:', error);
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
+    }
+}
 const getLikedCollectionById = async (req, res) => {
   try {
     const { id } = req.params;
-    console.log(id)
+    console.log('LikedC', id)
 
-    const likedColl = await findLikedColById(id);
+    const library_collection = await findLibraryCollectionById(id);
+    const user = await findUserByLibrary(id);
 
-    const likedSongs = [];
+    const liked_songs = [];
     const limit = 25;
 
-    for (const likedSong of likedColl.songs) {
-      if (likedSong.length >= limit) break;
-      const song = await Song.findById( likedSong );
+    for (const liked_song of library_collection.liked.songs) {
+      if (liked_song.length >= limit) break;
+      const song = await findSongById(liked_song._id);
       if (!song) {
         return res.status(404).json({ message: 'Song not found'})
       }
-      likedSongs.push(song);
+      liked_songs.push(song);
     }
+    console.log(user);
 
-    res.status(200).json(buildLikedCollection(likedColl, likedSongs));
-    
+    res.status(200).json(buildLikedCollection(library_collection, liked_songs, user.user_name));
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
 
-const handleLikeSong = async (req, res) => {
+const likeSong = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -126,29 +114,38 @@ const handleLikeSong = async (req, res) => {
     const userId = req.user.id;
 
     const user = await findUserById(userId);
-    const likedCol = await findLikedColById(user.liked_collection);
+    const likedCol = await findLibraryCollectionById(user.library_collection);
     const songFind = await findSongById(id);
 
-    likedCol.songs.push(id);
-    songFind.likes_count += 1;
-    
-    await songFind.save({ session });
+      if (likedCol.liked.songs.includes(id)) {
+          await session.abortTransaction();
+          await session.endSession();
+          return res.status(400).json({ message: "Song already liked" });
+      }
+
+    likedCol.liked.songs.push(id);
+    // songFind.likes_count += 1;
+
+    // await songFind.save({ session });
     await likedCol.save({ session });
 
     await session.commitTransaction();
-    session.endSession();
+    await session.endSession();
+
     res.status(200).json({
-      likedSongs: likedCol.songs.length
+      likedSongs: likedCol.liked.songs.length
     })
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+      if (session.inTransaction()) {
+          await session.abortTransaction();
+      }
+      await session.endSession();
 
     console.error('Error liking song:', error);
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
-const handleUnLikeSong = async (req, res) => {
+const unLikeSong = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -157,30 +154,38 @@ const handleUnLikeSong = async (req, res) => {
     const userId = req.user.id;
 
     const user = await findUserById(userId);
-    const likedCol = await findLikedColById(user.liked_collection);
-    const songFind = await findSongById(id);
-    
-    likedCol.songs.pull(songFind)
-    songFind.likes_count -= 1;
+    const likedCol = await findLibraryCollectionById(user.library_collection);
+    // const songFind = await findSongById(id);
+
+      if (!likedCol.liked.songs.includes(id)) {
+          await session.abortTransaction();
+          await session.endSession();
+          return res.status(400).json({ message: "Song already liked" });
+      }
+
+    likedCol.liked.songs.pull(id)
+    // songFind.likes_count -= 1;
 
     await likedCol.save({ session });
-    await songFind.save({ session });
+    // await songFind.save({ session });
 
     await session.commitTransaction();
-    session.endSession();
+    await session.endSession();
 
     res.status(200).json({
-      likedSongs: likedCol.songs.length
+      likedSongs: likedCol.liked.songs.length
     })
   } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+      if (session.inTransaction()) {
+          await session.abortTransaction();
+      }
+      await session.endSession();
 
     console.error('Error unliking song:', error);
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
-const handleLikeAlbum = async (req, res) => {
+const likeAlbum = async (req, res) => {
   const session = await mongoose.startSession();
   session.startTransaction();
 
@@ -190,14 +195,19 @@ const handleLikeAlbum = async (req, res) => {
 
     const user = await findUserById(userId);
     const playlist = await findAlbumById(id);
+    const library = await findLibraryCollectionById(user.library_collection);
 
-    if(!user.library.includes(playlist._id)){
-      user.library.push(playlist._id);
+    if (library.liked.albums.includes(id)) {
+        await session.abortTransaction();
+        await session.endSession();
+        return res.status(200).json({ message: "Album already liked"})
     }
-    await user.save({ session });
+
+    library.liked.albums.push(id);
+    await library.save({ session });
 
     await session.commitTransaction();
-    session.endSession();
+    await session.endSession();
 
     res.status(200).json({
       success: true,
@@ -205,40 +215,47 @@ const handleLikeAlbum = async (req, res) => {
     });
   } catch (error) {
     await session.abortTransaction();
-    session.endSession();
+    await session.endSession();
 
     console.error('Error liking album:', error);
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
   }
 }
-const handleUnLikeAlbum = async (req, res) => {
-  const session = await mongoose.startSession()
-  session.startTransaction();
+const unLikeAlbum = async (req, res) => {
+    const session = await mongoose.startSession();
+    session.startTransaction();
 
-  try{ 
-    const { id } = req.params;
-    const userId = req.user.id;
+    try{
+        const { id } = req.params;
+        const userId = req.user.id;
 
-    const user = await findUserById(userId);
-    const playlist = await findAlbumById(id);
+        const user = await findUserById(userId);
+        const playlist = await findAlbumById(id);
+        const library = await findLibraryCollectionById(user.library_collection);
 
-    user.library.pull(playlist._id);
-    await user.save({ session });
+        if (!library.liked.albums.includes(id)) {
+            await session.abortTransaction();
+            await session.endSession();
+            return res.status(200).json({ message: "Album already liked"})
+        }
 
-    await session.commitTransaction();
-    session.endSession();
+        library.liked.albums.pull(id);
+        await library.save({ session });
 
-    res.status(200).json({
-      success: true,
-      message: 'Playlist/Album has been liked successfully',
-    });
-  } catch (error) {
-    await session.abortTransaction();
-    session.endSession();
+        await session.commitTransaction();
+        await session.endSession();
 
-    console.error('Error unliking album:', error);
-    res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
-  }
+        res.status(200).json({
+            success: true,
+            message: 'Playlist/Album has been liked successfully',
+        });
+    } catch (error) {
+        await session.abortTransaction();
+        await session.endSession();
+
+        console.error('Error liking album:', error);
+        res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
+    }
 }
 
 const changePassword = async (req, res) => {
@@ -280,11 +297,11 @@ const changeEmail = async (req, res) => {
 }
 const changeUserName = async (req, res) => {
   try {
-    const { userName } = req.body;
-    const userId = req.user.id;
+    const { user_name } = req.body;
+    const user_id = req.user.id;
 
-    const user = await findUserById( userId );
-    user.user_name = userName;
+    const user = await findUserById( user_id );
+    user.user_name = user_name;
 
     await user.save();
 
@@ -313,13 +330,12 @@ const changeAvatar = async (req, res) => {
 module.exports = {
   getUserMy,
   getUserById,
-  getLikedCollectionMy,
   getLikedCollectionById,
-  
-  handleLikeSong,
-  handleUnLikeSong,
-  handleLikeAlbum,
-  handleUnLikeAlbum,
+
+  likeSong,
+  unLikeSong,
+  likeAlbum,
+    unLikeAlbum,
 
   changeEmail,
   changePassword,
