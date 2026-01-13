@@ -10,7 +10,7 @@ const { buildUserData, buildArtistData, buildUserForeignData, buildLikedCollecti
 
 const { findUserById } = require('../services/global/findUser');
 const { findArtistById } = require('../services/global/findArtist');
-const { findLikedColById } = require('../services/global/findLibraryCol');
+const { findLikedColById, findLibraryCollectionById} = require('../services/global/findLibraryCol');
 const { findSongById } = require('../services/global/findSong');
 const { findAlbumByIdWithSongs, findAlbumById } = require('../services/global/findAlbum');
 const { findArtistByIdNotStrict } = require('../services/global/findArtist');
@@ -65,10 +65,23 @@ const getSongData = async (req, res) => {
 const getAlbumById = async (req, res) => {
   try {
     const { id } = req.params;
+    const userId = req.user.id;
     if (!id) return res.status(400).json({ message: 'Album ID is required'});
 
-    const album = await Album.findById(id).populate('songs');
-    if (!album) return res.status(400).json({ message: "Album is not exists"})
+    const album = await Album.findById(id).populate('songs').lean();;
+    if (!album) return res.status(400).json({ message: "Album is not exists"});
+    const user = await findUserById(userId);
+    const library = await findLibraryCollectionById(user.library_collection);
+
+      for(const song of album?.songs){
+          if (library.liked.songs.some(songId => songId.equals(song._id))){
+              song.is_liked = true;
+          }
+      }
+
+      if(library.liked.albums.some(album_id => album_id.equals(album._id))){
+          album.is_liked = true;
+      }
     
     res.status(200).json(album);
   } catch (error) {

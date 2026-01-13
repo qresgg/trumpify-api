@@ -114,26 +114,27 @@ const likeSong = async (req, res) => {
     const userId = req.user.id;
 
     const user = await findUserById(userId);
-    const likedCol = await findLibraryCollectionById(user.library_collection);
+    const library = await findLibraryCollectionById(user.library_collection);
     const songFind = await findSongById(id);
 
-      if (likedCol.liked.songs.includes(id)) {
+      if (library.liked.songs.some(song_id => song_id.equals(id))) {
           await session.abortTransaction();
           await session.endSession();
           return res.status(400).json({ message: "Song already liked" });
       }
 
-    likedCol.liked.songs.push(id);
+      library.liked.songs.push(id);
     // songFind.likes_count += 1;
 
     // await songFind.save({ session });
-    await likedCol.save({ session });
+    await library.save({ session });
 
     await session.commitTransaction();
     await session.endSession();
 
     res.status(200).json({
-      likedSongs: likedCol.liked.songs.length
+      likedSongs: library.liked.songs.length,
+        message: 'Song liked successfully',
     })
   } catch (error) {
       if (session.inTransaction()) {
@@ -154,26 +155,27 @@ const unLikeSong = async (req, res) => {
     const userId = req.user.id;
 
     const user = await findUserById(userId);
-    const likedCol = await findLibraryCollectionById(user.library_collection);
+    const library = await findLibraryCollectionById(user.library_collection);
     // const songFind = await findSongById(id);
 
-      if (!likedCol.liked.songs.includes(id)) {
+      if (!library.liked.songs.some(song_id => song_id.equals(id))) {
           await session.abortTransaction();
           await session.endSession();
-          return res.status(400).json({ message: "Song already liked" });
+          return res.status(400).json({ message: "Song isn't liked" });
       }
 
-    likedCol.liked.songs.pull(id)
+      library.liked.songs.pull(id)
     // songFind.likes_count -= 1;
 
-    await likedCol.save({ session });
+    await library.save({ session });
     // await songFind.save({ session });
 
     await session.commitTransaction();
     await session.endSession();
 
     res.status(200).json({
-      likedSongs: likedCol.liked.songs.length
+      likedSongs: library.liked.songs.length,
+        message: 'Song unliked successfully',
     })
   } catch (error) {
       if (session.inTransaction()) {
@@ -197,11 +199,11 @@ const likeAlbum = async (req, res) => {
     const playlist = await findAlbumById(id);
     const library = await findLibraryCollectionById(user.library_collection);
 
-    if (library.liked.albums.includes(id)) {
-        await session.abortTransaction();
-        await session.endSession();
-        return res.status(200).json({ message: "Album already liked"})
-    }
+      if (library.liked.albums.some(album_id => album_id.equals(id))) {
+          await session.abortTransaction();
+          await session.endSession();
+          return res.status(400).json({ message: "Album already liked" });
+      }
 
     library.liked.albums.push(id);
     await library.save({ session });
@@ -233,10 +235,10 @@ const unLikeAlbum = async (req, res) => {
         const playlist = await findAlbumById(id);
         const library = await findLibraryCollectionById(user.library_collection);
 
-        if (!library.liked.albums.includes(id)) {
+        if (!library.liked.albums.some(album_id => album_id.equals(id))) {
             await session.abortTransaction();
             await session.endSession();
-            return res.status(200).json({ message: "Album already liked"})
+            return res.status(400).json({ message: "Album isn't liked" });
         }
 
         library.liked.albums.pull(id);
@@ -263,10 +265,9 @@ const changePassword = async (req, res) => {
     const { password } = req.body;
     console.log('change', req.body);
 
-    const userId = req.user.id;
-    const user = await findUserById( userId ); 
-    const hashedPassword = await createPassword(password); 
-    user.password_hash = hashedPassword;
+    const user_id = req.user.id;
+    const user = await findUserById( user_id );
+    user.password_hash = await createPassword(password);
     
     await user.save();
 

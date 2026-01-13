@@ -17,11 +17,11 @@ require('dotenv').config();
 connectDB();
 
 const PORT = process.env.PORT || 4000;
-const { SECRETKEY_COOKIES, NODE_ENV, PROD_CLIENT_URL, DEV_CLIENT_URL } = process.env;
+const { SECRETKEY_COOKIES, NODE_ENV, PROD_CLIENT_URL, DEV_CLIENT_URL, ANDROID_URL, DEV_ALT_URL, DEV_ALT_URL_2 } = process.env;
 const app = express();
 
 app.use(cors({
-    origin: [PROD_CLIENT_URL],
+    origin: NODE_ENV === 'production' ? [PROD_CLIENT_URL] : [DEV_ALT_URL, DEV_ALT_URL_2, ANDROID_URL, DEV_CLIENT_URL],
     credentials: true,
 }));
 app.use(cookieParser())
@@ -51,7 +51,7 @@ app.use('/user', userRouter);
 
 const start = (port) => {
   try {
-    app.listen(port, '0.0.0.0', () => {
+    app.listen(port,  () => {
       console.log(`server is working on ${port}`);
     });
   } catch (error) {
