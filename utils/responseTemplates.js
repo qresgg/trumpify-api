@@ -1,3 +1,4 @@
+// USER
 const buildUserData = (user, count) => {
   return {
         _id: user._id,
@@ -9,7 +10,6 @@ const buildUserData = (user, count) => {
         user_likedSongsCount: count
   };
 }
-
 const buildUserForeignData = (user, editPermission) => {
   return {
     _id: user._id,
@@ -20,6 +20,7 @@ const buildUserForeignData = (user, editPermission) => {
   };
 }
 
+// ARTIST
 const buildArtistData = (artist) => {
   if (!artist) return 'none';
 
@@ -34,7 +35,6 @@ const buildArtistData = (artist) => {
     artist_region: artist.region
   };
 }
-
 const buildArtistForeignData = (artist) => {
   if (!artist) return 'none';
 
@@ -50,14 +50,27 @@ const buildArtistForeignData = (artist) => {
   };
 }
 
+// ALBUM
 const buildAlbumData = (album) => {
     
+}
+const buildAlbumDataMeta = (album) => {
+    return{
+        _id: album._id,
+        definition: album.definition,
+        cover: album.cover,
+        title: album.title,
+        artist_name: album.artist_name,
+        genre: album.genre,
+        type: album.type,
+    }
 }
 
 const buildSongData = (song) => {
 
 }
 
+// LIKED COLLECTION
 const buildLikedCollection = (collection, songs, name) => {
   return {
     _id: collection._id,
@@ -70,10 +83,13 @@ const buildLikedCollection = (collection, songs, name) => {
   }
 }
 
+
+
 module.exports = {
     buildArtistData,
     buildArtistForeignData,
     buildUserData,
     buildUserForeignData,
     buildLikedCollection,
+    buildAlbumDataMeta
 }

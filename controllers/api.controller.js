@@ -6,7 +6,7 @@ const Ref = require('../models/ref.model');
 const LibraryCollection = require('../models/libraryCollection.model')
 const mongoose = require('mongoose');
 
-const { buildUserData, buildArtistData, buildUserForeignData, buildLikedCollection } = require('../utils/responseTemplates')
+const { buildUserData, buildArtistData, buildUserForeignData, buildLikedCollection, buildAlbumDataMeta} = require('../utils/responseTemplates')
 
 const { findUserById } = require('../services/global/findUser');
 const { findArtistById } = require('../services/global/findArtist');
@@ -20,24 +20,31 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 const getLibrary = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const user = await findUserById(userId);
-    const first20libraryItems = user.library ? user.library.slice(0, 20) : [];
-    const libraryItems = [];
-    for (const itemId of first20libraryItems) {
-      try {
-        const album = await findAlbumByIdWithSongs(itemId);
-        if (album) {
-          libraryItems.push(album);
-        }
-      } catch (error) {
-        console.error(`Error finding album with ID ${itemId}:`, error);
+      if (!req.user || !req.user.id) {
+          return res.status(400).json({ message: 'User not authenticated or user ID missing' });
       }
-    }
+      console.log('Request received for user id:', req.user.id);
+      const userId = req.user.id;
 
-    res.status(200).json({
-      libraryItems
-    });
+      const user = await findUserById(userId);
+      const artist = await findArtistByIdNotStrict(userId);
+      const library = await findLibraryCollectionById(user.library_collection);
+
+      const first20libraryItems = library.liked.albums ? library.liked.albums.slice(0, 20) : [];
+      const libraryItems = [];
+
+      for (const itemId of first20libraryItems) {
+          try {
+              const album = await findAlbumById(itemId);
+              if (album) {
+                  libraryItems.push(buildAlbumDataMeta(album));
+              }
+          } catch (error) {
+              console.error(`Error finding album with ID ${itemId}:`, error);
+          }
+      }
+
+    res.status(200).json(libraryItems);
 
   } catch (error) {
     console.error('Server error:', error);

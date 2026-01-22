@@ -10,7 +10,7 @@ const { findUserById, findUserByLibrary} = require('../services/global/findUser'
 const { findLibraryCollectionById, findLibraryCollectionByUserId } = require('../services/global/findLibraryCol');
 const { findAlbumByIdWithSongs } = require('../services/global/findAlbum'); 
 const { findSongById } = require('../services/global/findSong');
-const { buildUserData, buildUserForeignData, buildArtistData, buildLikedCollection } = require('../utils/responseTemplates');
+const { buildUserData, buildUserForeignData, buildArtistData, buildLikedCollection, buildAlbumDataMeta} = require('../utils/responseTemplates');
 const { uploadPattern } = require("../utils/pattern/uploadPattern");
 const { isDev } = require('../utils/isDev');
 const {findArtistByIdNotStrict} = require("../services/global/findArtist");
@@ -29,9 +29,25 @@ const getUserMy = async (req, res) => {
 
     const userData = buildUserData(user, library.liked.songs.length);
     const artistData = buildArtistData(artist);
+
+      const first20libraryItems = library.liked.albums ? library.liked.albums.slice(0, 20) : [];
+      const libraryItems = [];
+
+      for (const itemId of first20libraryItems) {
+          try {
+              const album = await findAlbumById(itemId);
+              if (album) {
+                  libraryItems.push(buildAlbumDataMeta(album));
+              }
+          } catch (error) {
+              console.error(`Error finding album with ID ${itemId}:`, error);
+          }
+      }
+
     res.status(201).json({
         user: userData,
-        artist: artistData
+        artist: artistData,
+        lib: libraryItems
     });
   } catch (error) {
     console.error('Server error:', error);
@@ -213,7 +229,7 @@ const likeAlbum = async (req, res) => {
 
     res.status(200).json({
       success: true,
-      message: 'Playlist/Album has been liked successfully',
+      message: 'P/A liked successfully',
     });
   } catch (error) {
     await session.abortTransaction();
@@ -249,7 +265,7 @@ const unLikeAlbum = async (req, res) => {
 
         res.status(200).json({
             success: true,
-            message: 'Playlist/Album has been liked successfully',
+            message: 'P/A unliked successfully',
         });
     } catch (error) {
         await session.abortTransaction();
