@@ -1,4 +1,4 @@
-const { findUserById } = require('../../services/global/findUser');
+const { findUserById } = require('../../services/search.main');
 const { processCoverImage } = require('../../services/upload/processCoverImage');
 const { allowedTypesFunc } = require('../../services/upload/allowedTypes');
 const { uploadAvatarToCloudinary } = require('../../services/upload/uploadAvatarToCloudinary');

@@ -3,13 +3,13 @@ const Artist = require('../models/artist.model');
 const User = require('../models/user.model');
 const Song = require('../models/song.model');
 const Album = require('../models/album.model')
-const { findUserById } = require("../services/global/findUser");
-const { findArtistById, findArtistByName } = require("../services/global/findArtist");
-const { findAlbumById } = require("../services/global/findAlbum");
-const { verifyPassword } = require("../services/global/password")
+const { findUserById } = require("../services/search.main");
+const { findArtistById, findArtistByName } = require("../services/search.main");
+const { findAlbumById } = require("../services/search.main");
+const { verifyPassword } = require("../services/useful.fragment")
 
-const { createArtist } = require("../services/create/createArtist")
-const {buildArtistData} = require("../utils/responseTemplates");
+const { createArtist } = require("../services/create.main");
+const {buildArtistData} = require("../utils/pattern/response.pattern");
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'
@@ -134,11 +134,6 @@ const getArtistReleases = async (req, res) => {
         });
     }
 };
-
-
-
-
-
 
 const getPopularMix = async (req, res) => {
     try {

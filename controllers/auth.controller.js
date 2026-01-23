@@ -1,8 +1,7 @@
-
 const { isDev } = require('../utils/isDev');
-const {findUserByEmailExists, findUserByEmail, findUserById} = require("../services/global/findUser");
-const {createLibraryCollection, createUser} = require("../services/create/createUser");
-const {verifyPassword, createPassword} = require("../services/global/password");
+const {findUserByEmailExists, findUserByEmail, findUserById} = require("../services/search.main");
+const {createLibraryCollection, createUser} = require("../services/create.main");
+const {verifyPassword, createPassword} = require("../services/useful.fragment");
 const {generateAccessToken, generateRefreshToken} = require("../middleware/token");
 const {RT_pattern} = require("../utils/pattern/token.pattern");
 const jwt = require('jsonwebtoken');

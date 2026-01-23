@@ -1,6 +1,6 @@
 const Ref = require('../models/ref.model');
-const { findArtistById } = require('../services/global/findArtist');
-const { findUserById } = require('../services/global/findUser');
+const { findArtistById } = require('../services/search.main');
+const { findUserById } = require('../services/search.main');
 
 const getRegions = async (req, res) => {
   try {

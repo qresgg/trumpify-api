@@ -3,8 +3,8 @@ const bcrypt = require('bcrypt');
 const Artist = require('../models/artist.model');
 const Album = require('../models/album.model');
 
-const { findUserById } = require('../services/global/findUser');
-const { findArtistById } = require('../services/global/findArtist');
+const { findUserById } = require('../services/search.main');
+const { findArtistById } = require('../services/search.main');
 
 const { isValidBio } = require('../utils/validation')
 

@@ -5,9 +5,9 @@ const Song = require('../../models/song.model');
 const Album = require('../../models/album.model')
 const LikedCol = require('../../models/libraryCollection.model')
 
-const { findSongById } = require('../../services/global/findSong');
-const { findUserById } = require('../../services/global/findUser');
-const { findLikedColById } = require('../../services/global/findLibraryCol');
+const { findSongById } = require('../../services/search.main');
+const { findUserById } = require('../../services/search.main');
+const { findLikedColById } = require('../../services/search.main');
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'

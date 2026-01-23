@@ -3,10 +3,10 @@ const Artist = require('../models/artist.model');
 const Song = require('../models/song.model')
 const Album = require('../models/album.model')
 const Ref = require('../models/ref.model');
-const { buildUserData, buildArtistData, buildUserForeignData, buildLikedCollection } = require('../utils/responseTemplates');
+const { buildUserData, buildArtistData, buildUserForeignData, buildLikedCollection } = require('../utils/pattern/response.pattern');
 const { isDev } = require('../utils/isDev');
-const {findUserById} = require("../services/global/findUser");
-const {findLibraryCollectionById} = require("../services/global/findLibraryCol");
+const {findUserById} = require("../services/search.main");
+const {findLibraryCollectionById} = require("../services/search.main");
 
 const search = async (req, res) => {
   const { id } = req.params;

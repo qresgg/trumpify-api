@@ -1,9 +1,9 @@
 const mongoose = require('mongoose')
 const cloudinary = require('../middleware/upload.middleware');
 
-const { findUserById } = require('../services/global/findUser')
-const { findArtistById } = require('../services/global/findArtist')
-const { parseFeatures } = require('../services/song/parseFeatures')
+const { findUserById } = require('../services/search.main')
+const { findArtistById } = require('../services/search.main');
+const { parseFeatures } = require('../services/useful.fragment')
 
 const { processCoverImage } = require('../services/upload/processCoverImage')
 const { uploadCoverToCloudinary } = require('../services/upload/uploadCoverToCloudinary')
@@ -11,7 +11,7 @@ const { updateSongWithCover } = require('../services/upload/updateSongByCover')
 const { uploadSongToCloudinary } = require('../services/upload/uploadSongToCloudinary')
 const { updateSongWithSong } = require('../services/upload/updateSongBySong')
 
-const { createSong } = require('../services/create/createSong')
+const { createSong } = require('../services/create.main')
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'

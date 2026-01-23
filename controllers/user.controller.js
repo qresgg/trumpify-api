@@ -3,17 +3,16 @@ const Artist = require('../models/artist.model');
 const Song = require('../models/song.model');
 const User = require('../models/user.model');
 const bcrypt = require('bcrypt');
-const { createPassword } = require('../services/global/password');
+const { createPassword } = require('../services/useful.fragment');
 
-const { findAlbumById } = require('../services/global/findAlbum');
-const { findUserById, findUserByLibrary} = require('../services/global/findUser');
-const { findLibraryCollectionById, findLibraryCollectionByUserId } = require('../services/global/findLibraryCol');
-const { findAlbumByIdWithSongs } = require('../services/global/findAlbum'); 
-const { findSongById } = require('../services/global/findSong');
-const { buildUserData, buildUserForeignData, buildArtistData, buildLikedCollection, buildAlbumDataMeta} = require('../utils/responseTemplates');
-const { uploadPattern } = require("../utils/pattern/uploadPattern");
+const { findAlbumById } = require('../services/search.main');
+const { findUserById, findUserByLibrary} = require('../services/search.main');
+const { findLibraryCollectionById, findLibraryCollectionByUserId } = require('../services/search.main');
+const { findSongById } = require('../services/search.main');
+const { buildUserData, buildUserForeignData, buildArtistData, buildLikedCollection, buildAlbumDataMeta} = require('../utils/pattern/response.pattern');
+const { uploadPattern } = require("../utils/pattern/upload.pattern");
 const { isDev } = require('../utils/isDev');
-const {findArtistByIdNotStrict} = require("../services/global/findArtist");
+const {findArtistByIdNotStrict} = require("../services/search.main");
 
 const getUserMy = async (req, res) => {
   try {

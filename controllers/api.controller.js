@@ -1,51 +1,21 @@
-const User = require('../models/user.model');
-const Artist = require('../models/artist.model');
 const Song = require('../models/song.model')
 const Album = require('../models/album.model')
-const Ref = require('../models/ref.model');
-const LibraryCollection = require('../models/libraryCollection.model')
-const mongoose = require('mongoose');
 
-const { buildUserData, buildArtistData, buildUserForeignData, buildLikedCollection, buildAlbumDataMeta} = require('../utils/responseTemplates')
-
-const { findUserById } = require('../services/global/findUser');
-const { findArtistById } = require('../services/global/findArtist');
-const { findLikedColById, findLibraryCollectionById} = require('../services/global/findLibraryCol');
-const { findSongById } = require('../services/global/findSong');
-const { findAlbumByIdWithSongs, findAlbumById } = require('../services/global/findAlbum');
-const { findArtistByIdNotStrict } = require('../services/global/findArtist');
+const { findUserById } = require('../services/search.main');
+const { likedAlbums } = require("../services/useful.fragment.js");
+const { userAuthCheck } = require("../services/useful.fragment");
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production';
 
 const getLibrary = async (req, res) => {
   try {
-      if (!req.user || !req.user.id) {
-          return res.status(400).json({ message: 'User not authenticated or user ID missing' });
-      }
-      console.log('Request received for user id:', req.user.id);
+      await userAuthCheck(req.user, res);
+
       const userId = req.user.id;
+      const libraryItems = await likedAlbums(userId);
 
-      const user = await findUserById(userId);
-      const artist = await findArtistByIdNotStrict(userId);
-      const library = await findLibraryCollectionById(user.library_collection);
-
-      const first20libraryItems = library.liked.albums ? library.liked.albums.slice(0, 20) : [];
-      const libraryItems = [];
-
-      for (const itemId of first20libraryItems) {
-          try {
-              const album = await findAlbumById(itemId);
-              if (album) {
-                  libraryItems.push(buildAlbumDataMeta(album));
-              }
-          } catch (error) {
-              console.error(`Error finding album with ID ${itemId}:`, error);
-          }
-      }
-
-    res.status(200).json(libraryItems);
-
+      res.status(200).json(libraryItems);
   } catch (error) {
     console.error('Server error:', error);
     res.status(500).json({ error: isDev ? error.message : "Something went wrong. Please try again later." });
@@ -72,7 +42,7 @@ const getSongData = async (req, res) => {
 const getAlbumById = async (req, res) => {
   try {
     const { id } = req.params;
-    const userId = req.user.id;
+    await userAuthCheck(req.user, res);
     if (!id) return res.status(400).json({ message: 'Album ID is required'});
 
     const album = await Album.findById(id).populate('songs').lean();;

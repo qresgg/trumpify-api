@@ -1,6 +1,6 @@
 const User = require('../models/user.model');
 const { generateAccessToken, generateRefreshToken, decodeAccessToken, decodeRefreshToken} = require('./token');
-const findUserById = require('../services/global/findUser')
+const findUserById = require('../services/search.main')
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'

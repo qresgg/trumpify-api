@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
-const findUserById = require('../../services/global/findUser')
-const findAlbumById = require('../../services/global/findAlbum')
-const findLibraryCollectionById = require('../../services/global/findLibraryCol')
+const findUserById = require('../../services/search.main')
+const findAlbumById = require('../../services/search.main')
+const findLibraryCollectionById = require('../../services/search.main');
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'

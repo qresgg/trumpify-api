@@ -1,12 +1,12 @@
 const mongoose = require('mongoose')
 const cloudinary = require('../middleware/upload.middleware');
 
-const { findUserById } = require("../services/global/findUser");
-const { findArtistById } = require("../services/global/findArtist");
-const { findAlbumById } = require("../services/global/findAlbum");
+const { findUserById } = require("../services/search.main");
+const { findArtistById } = require("../services/search.main");
+const { findAlbumById } = require("../services/search.main");
 
-const { parseFeatures } = require("../services/song/parseFeatures");
-const { deleteSong } = require("../services/song/deleteSong");
+const { parseFeatures } = require("../services/useful.fragment");
+const { deleteSong } = require("../services/useful.fragment");
 
 const { processCoverImage } = require("../services/upload/processCoverImage");
 const { uploadCoverAlbumToCloudinary } = require("../services/upload/uploadCoverAlbumToCloudinary");
@@ -14,8 +14,8 @@ const { updateSongWithSong } = require("../services/upload/updateSongBySong");
 const { uploadSongToCloudinary } = require("../services/upload/uploadSongToCloudinary");
 const { updateAlbumWithCover } = require("../services/upload/updateAlbumByCover");
 
-const { createAlbum } = require("../services/create/createAlbum");
-const { createSongInAlbum } = require("../services/create/createSongInAlbum");
+const { createAlbum } = require("../services/create.main");
+const { createSongInAlbum } = require("../services/create.main");
 
 require('dotenv').config();
 const isDev = process.env.NODE_ENV !== 'production'
