@@ -9,8 +9,6 @@ const authRoutes = require('./routes/auth.route');
 const apiRoutes = require('./routes/api.route');
 const artistRoutes = require('./routes/artist.route');
 const settingsRoutes = require('./routes/settings.route');
-const actionRoutes = require('./routes/userActions.route');
-const searchRouter = require('./routes/search.route');
 const userRouter = require('./routes/user.route');
 
 require('dotenv').config();
@@ -44,9 +42,6 @@ app.use('/auth', authRoutes);
 app.use('/api', apiRoutes);
 app.use('/artist', artistRoutes);
 app.use('/settings', settingsRoutes);
-app.use('/actions', actionRoutes);
-app.use('/search', searchRouter);
-
 app.use('/user', userRouter);
 
 const start = (port) => {

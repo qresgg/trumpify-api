@@ -1,7 +1,7 @@
 const Song = require('../models/song.model')
 const Album = require('../models/album.model')
 
-const { findUserById } = require('../services/search.main');
+const { findUserById, findLibraryCollectionById} = require('../services/search.main');
 const { likedAlbums } = require("../services/useful.fragment.js");
 const { userAuthCheck } = require("../services/useful.fragment");
 
@@ -47,7 +47,7 @@ const getAlbumById = async (req, res) => {
 
     const album = await Album.findById(id).populate('songs').lean();;
     if (!album) return res.status(400).json({ message: "Album is not exists"});
-    const user = await findUserById(userId);
+    const user = await findUserById(req.user.id);
     const library = await findLibraryCollectionById(user.library_collection);
 
       for(const song of album?.songs){
